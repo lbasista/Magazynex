@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dodaj produkt"
+            android:textSize="24sp"
+            android:textColor="@color/colorPrimary"
+            android:layout_marginBottom="24dp"/>
+
+        <EditText
+            android:id="@+id/editTextProductName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nazwa produktu"
+            android:inputType="text"/>
+
+        <EditText
+            android:id="@+id/editTextProductProducer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Producent"
+            android:inputType="text"/>
+
+        <EditText
+            android:id="@+id/editTextProductQuantity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ilość"
+            android:inputType="number"/>
+
+        <Button
+            android:id="@+id/buttonSaveProduct"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Zapisz produkt"
+            android:layout_marginTop="16dp"/>
+    </LinearLayout>
+</ScrollView>
