@@ -8,4 +8,5 @@
     <color name="light_blue">#dbedfd</color>
     <color name="colorPrimary">#2196F3</color>
     <color name="colorPrimaryDark">#1976D2</color>
+    <color name="dark_purple">#3F51B5</color>
 </resources>

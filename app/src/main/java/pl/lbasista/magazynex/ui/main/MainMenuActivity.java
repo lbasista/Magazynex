@@ -29,12 +29,35 @@ public class MainMenuActivity extends AppCompatActivity {
 
         //Domyślne okno
         loadFragment(new ProductListFragment());
+        selectMenu(menuProducts);
 
         //Wybieranie okna
-        menuProducts.setOnClickListener(v -> loadFragment(new ProductListFragment()));
-        menuAdd.setOnClickListener(v -> loadFragment(new AddProductFragment()));
-        menuFav.setOnClickListener(v -> loadFragment(new FavouriteFragment()));
-        menuAbout.setOnClickListener(v -> loadFragment(new AboutFragment()));
+        menuProducts.setOnClickListener(v -> {
+            loadFragment(new ProductListFragment());
+            selectMenu(menuProducts);
+        });
+        menuAdd.setOnClickListener(v -> {
+            loadFragment(new AddProductFragment());
+            selectMenu(menuAdd);
+        });
+        menuFav.setOnClickListener(v -> {
+            loadFragment(new FavouriteFragment());
+            selectMenu(menuFav);
+        });
+        menuAbout.setOnClickListener(v -> {
+            loadFragment(new AboutFragment());
+            selectMenu(menuAbout);
+        });
+    }
+
+    private void selectMenu(LinearLayout selected) {
+        //Usuń zaznaczenie tła
+        menuAdd.setSelected(false);
+        menuProducts.setSelected(false);
+        menuFav.setSelected(false);
+        menuAbout.setSelected(false);
+        //Ustaw tło na aktywnym
+        selected.setSelected(true);
     }
 
     private void loadFragment(Fragment fragment) {
