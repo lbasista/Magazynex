@@ -13,6 +13,12 @@ public interface ProductDao {
     @Query("SELECT * FROM Product")
     LiveData<List<Product>> getAll();
 
+    @Query("SELECT * FROM Product WHERE favourite = 1")
+    LiveData<List<Product>> getFavourites();
+
+    @Query("UPDATE Product SET favourite = :fav WHERE id = :id")
+    void updateFavourite(int id, boolean fav);
+
     @Insert
     void insert(Product product);
 }

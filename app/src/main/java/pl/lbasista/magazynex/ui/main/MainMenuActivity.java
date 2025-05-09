@@ -1,51 +1,46 @@
 package pl.lbasista.magazynex.ui.main;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
+import androidx.fragment.app.Fragment;
+import android.widget.LinearLayout;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import pl.lbasista.magazynex.R;
-import pl.lbasista.magazynex.ui.about.AboutActivity;
-import pl.lbasista.magazynex.ui.addproduct.AddProductActivity;
-import pl.lbasista.magazynex.ui.product.ProductListActivity;
+import pl.lbasista.magazynex.ui.about.AboutFragment;
+import pl.lbasista.magazynex.ui.addproduct.AddProductFragment;
+import pl.lbasista.magazynex.ui.product.ProductListFragment;
+import pl.lbasista.magazynex.ui.product.FavouriteFragment;
 
 public class MainMenuActivity extends AppCompatActivity {
-    Button buttonProductList, buttonAddProduct, buttonAbout;
+    private LinearLayout menuAdd, menuProducts, menuFav, menuAbout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //Wczytaj menu główne
         setContentView(R.layout.activity_main_menu);
 
-        buttonProductList = findViewById(R.id.buttonProductList);
-        buttonAddProduct = findViewById(R.id.buttonAddProduct);
-        buttonAbout = findViewById(R.id.buttonAbout);
+        //Znajdź widok
+        menuAdd = findViewById(R.id.menuAdd);
+        menuProducts = findViewById(R.id.menuProducts);
+        menuAbout = findViewById(R.id.menuAbout);
+        menuFav = findViewById(R.id.menuFav);
 
-        buttonProductList.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainMenuActivity.this, ProductListActivity.class);
-                startActivity(intent);
-            }
-        });
+        //Domyślne okno
+        loadFragment(new ProductListFragment());
 
-        buttonAddProduct.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainMenuActivity.this, AddProductActivity.class);
-                startActivity(intent);
-            }
-        });
+        //Wybieranie okna
+        menuProducts.setOnClickListener(v -> loadFragment(new ProductListFragment()));
+        menuAdd.setOnClickListener(v -> loadFragment(new AddProductFragment()));
+        menuFav.setOnClickListener(v -> loadFragment(new FavouriteFragment()));
+        menuAbout.setOnClickListener(v -> loadFragment(new AboutFragment()));
+    }
 
-        buttonAbout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainMenuActivity.this, AboutActivity.class);
-                startActivity(intent);
-            }
-        });
-
+    private void loadFragment(Fragment fragment) {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main_content, fragment)
+                .commit();
     }
 }

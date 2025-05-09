@@ -8,16 +8,14 @@ public class Product {
 
     @PrimaryKey(autoGenerate = true)
     public int id; //ID Produktu
-
     public String name; //Nazwa produktu
-
     public String producer; //Producent
-
     public int quantity; //Ilość
-
-    public Product(String name, int quantity, String producer) {
+    public boolean favourite; //Ulubione
+    public Product(String name, int quantity, String producer, boolean favourite) {
         this.name = name;
         this.quantity = quantity;
         this.producer = producer;
+        this.favourite = favourite;
     }
 }

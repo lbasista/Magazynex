@@ -19,10 +19,5 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
-        <activity android:name=".ui.product.ProductListActivity"/>
-        <activity android:name=".ui.addproduct.AddProductActivity"/>
-        <activity android:name=".ui.about.AboutActivity"/>
     </application>
-
 </manifest>

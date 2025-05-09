@@ -2,21 +2,48 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:background="@drawable/rounded_rectangle"
+    android:layout_margin="4dp">
 
-    <TextView
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:id="@+id/textViewProductName"
-        android:textStyle="bold"
-        android:textSize="26sp"/>
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/textViewProductDetails"
-        android:textSize="14sp"
-        android:layout_marginTop="4dp"
-        android:textColor="@color/gray"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textViewProductName"
+            android:textStyle="bold"
+            android:textSize="26sp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textViewProductDetails"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/gray"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:id="@+id/starred"
+        android:gravity="center_vertical"
+        android:clickable="true"
+        android:padding="4dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/textFavourite"
+            android:text="★"
+            android:textSize="24dp"
+            android:textStyle="bold"
+            android:textColor="@color/light_gray"/>
+    </LinearLayout>
 </LinearLayout>

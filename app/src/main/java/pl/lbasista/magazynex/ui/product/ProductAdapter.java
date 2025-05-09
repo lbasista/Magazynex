@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
@@ -15,16 +16,18 @@ import pl.lbasista.magazynex.data.Product;
 
 public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
 
-    List<Product> productList;
+    private final List<Product> productList;
+    private final ProductViewModel viewModel;
 
-    public ProductAdapter(List<Product> productList) {
+    public ProductAdapter(List<Product> productList, ProductViewModel viewModel) {
         this.productList = productList;
+        this.viewModel = viewModel;
     }
 
     @NonNull
     @Override
     public ProductViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        //komentarz: Tworzymy widok dla pojedynczego elementu listy
+        //Tworzymy widok dla pojedynczego elementu listy
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_product, parent, false);
         return new ProductViewHolder(view);
@@ -32,12 +35,21 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
     @Override
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
-        //komentarz: Pobieramy produkt z listy
+        //Pobieramy produkt z listy
         Product product = productList.get(position);
 
-        //komentarz: Ustawiamy nazwę i ilość
+        //Ustawiamy nazwę i ilość
         holder.textViewProductName.setText(product.name);
         holder.textViewProductDetails.setText(product.producer + " • Na stanie: " + product.quantity);
+
+        //Zmiana koloru gwiazdki
+        int starColorRes = product.favourite ? R.color.gold : R.color.light_gray;
+        holder.textFavourite.setTextColor(
+                ContextCompat.getColor(holder.itemView.getContext(), starColorRes)
+        );
+
+        //Po kliknięciu gwiazdki
+        holder.textFavourite.setOnClickListener(v -> viewModel.toggleFavourite(product));
     }
 
     @Override
@@ -46,12 +58,13 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     }
 
     static class ProductViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewProductName, textViewProductDetails;
+        TextView textViewProductName, textViewProductDetails, textFavourite;
 
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewProductName = itemView.findViewById(R.id.textViewProductName);
             textViewProductDetails = itemView.findViewById(R.id.textViewProductDetails);
+            textFavourite = itemView.findViewById(R.id.textFavourite);
         }
     }
 }
