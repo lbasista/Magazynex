@@ -4,11 +4,20 @@ import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import java.util.List;
 
 @Dao
 public interface ProductDao {
+    @Query("SELECT * FROM Product WHERE name = :name AND producer = :producer LIMIT 1")
+    Product getByNameAndProducer(String name, String producer); //Sprawdź czy jest w bazie
+
+    @Update
+    void update(Product product);
+
+    @Insert
+    void insert(Product product);
 
     @Query("SELECT * FROM Product")
     LiveData<List<Product>> getAll();
@@ -18,7 +27,4 @@ public interface ProductDao {
 
     @Query("UPDATE Product SET favourite = :fav WHERE id = :id")
     void updateFavourite(int id, boolean fav);
-
-    @Insert
-    void insert(Product product);
 }

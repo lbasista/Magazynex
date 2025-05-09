@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.Product;
+import pl.lbasista.magazynex.data.ProductDao;
 
 public class AddProductFragment extends Fragment {
     private EditText editTextName, editTextProducer, editTextQuantity;
@@ -65,7 +66,17 @@ public class AddProductFragment extends Fragment {
         Product product = new Product(productName, quantity, producer, false);
 
         new Thread(() -> {
-            AppDatabase.getInstance(requireContext()).productDao().insert(product);
+            ProductDao dao = AppDatabase.getInstance(requireContext()).productDao();
+
+            Product existing = dao.getByNameAndProducer(productName, producer);
+            if (existing != null) {
+                //Istnieje = zwiększanie ilości
+                existing.quantity += quantity;
+                dao.update(existing);
+            } else {
+                //Brak w bazie = dodaj nowy
+                dao.insert(product);
+            }
 
             requireActivity().runOnUiThread(() -> {
                 Toast.makeText(getContext(), "Produkt dodany", Toast.LENGTH_SHORT).show();
