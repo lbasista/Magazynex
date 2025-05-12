@@ -42,6 +42,15 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         holder.textViewProductName.setText(product.name);
         holder.textViewProductDetails.setText(product.producer + " • Na stanie: " + product.quantity);
 
+        //Kod kreskowy
+        String barcode = product.barcode != null ? product.barcode : "";
+        if (barcode.isEmpty()) {
+            holder.textViewProductBarcode.setVisibility(View.GONE);
+        } else {
+            holder.textViewProductBarcode.setVisibility(View.VISIBLE);
+            holder.textViewProductBarcode.setText(barcode);
+        }
+
         //Zmiana koloru gwiazdki
         int starColorRes = product.favourite ? R.color.gold : R.color.light_gray;
         holder.textFavourite.setTextColor(
@@ -58,10 +67,11 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     }
 
     static class ProductViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewProductName, textViewProductDetails, textFavourite;
+        TextView textViewProductBarcode, textViewProductName, textViewProductDetails, textFavourite;
 
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
+            textViewProductBarcode = itemView.findViewById(R.id.textViewProductBarcode);
             textViewProductName = itemView.findViewById(R.id.textViewProductName);
             textViewProductDetails = itemView.findViewById(R.id.textViewProductDetails);
             textFavourite = itemView.findViewById(R.id.textFavourite);

@@ -1,5 +1,7 @@
 package pl.lbasista.magazynex.data;
 
+import android.provider.ContactsContract;
+
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
@@ -27,4 +29,8 @@ public interface ProductDao {
 
     @Query("UPDATE Product SET favourite = :fav WHERE id = :id")
     void updateFavourite(int id, boolean fav);
+
+    //Szukaj po kodzie
+    @Query("SELECT * FROM Product WHERE barcode = :barcode LIMIT 1")
+    Product getByBarcode(String barcode);
 }

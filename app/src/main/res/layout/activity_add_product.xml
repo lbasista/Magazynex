@@ -19,6 +19,37 @@
             android:padding="16dp"
             android:layout_marginBottom="24dp"/>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:id="@+id/editTextProductBarcode"
+                android:hint="Kod kreskowy (opcjonalne)"
+                android:inputType="number"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:minWidth="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/buttonBarcodeSearch"
+                android:text="🔎"/>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textBarcodeError"
+            android:text="Brak pasującego produktu w bazie. Wprowadź dane ręcznie."
+            android:textColor="@color/design_default_color_error"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp"/>
+
         <EditText
             android:id="@+id/editTextProductName"
             android:layout_width="match_parent"
