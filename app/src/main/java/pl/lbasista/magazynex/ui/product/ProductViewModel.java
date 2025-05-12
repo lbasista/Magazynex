@@ -31,6 +31,10 @@ public class ProductViewModel extends AndroidViewModel {
         favouriteList = productDao.getFavourites();
     }
 
+    public LiveData<List<Product>> searchProducts(String query) {
+        return productDao.searchProducts(query);
+    }
+
     public LiveData<List<Product>> getAllProducts() {
         return productList;
     }

@@ -33,4 +33,11 @@ public interface ProductDao {
     //Szukaj po kodzie
     @Query("SELECT * FROM Product WHERE barcode = :barcode LIMIT 1")
     Product getByBarcode(String barcode);
+
+    //Znajdź produkt na liście
+    @Query("SELECT * FROM Product WHERE " +
+            "name LIKE '%' || :search || '%' OR " +
+            "producer LIKE '%' || :search || '%' OR " +
+            "barcode LIKE '%' || :search || '%'")
+    LiveData<List<Product>> searchProducts(String search);
 }
