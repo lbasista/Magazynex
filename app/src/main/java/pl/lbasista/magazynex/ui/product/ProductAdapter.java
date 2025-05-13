@@ -19,6 +19,10 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     private final List<Product> productList;
     private final ProductViewModel viewModel;
 
+    public List<Product> getProductList() {
+        return productList;
+    }
+
     public ProductAdapter(List<Product> productList, ProductViewModel viewModel) {
         this.productList = productList;
         this.viewModel = viewModel;

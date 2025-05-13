@@ -13,10 +13,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Dodaj produkt"
-            android:textSize="24sp"
+            android:textSize="22sp"
             android:textColor="@color/colorPrimary"
             android:textStyle="bold"
-            android:padding="16dp"
+            android:padding="8dp"
             android:layout_marginBottom="24dp"/>
 
         <LinearLayout
