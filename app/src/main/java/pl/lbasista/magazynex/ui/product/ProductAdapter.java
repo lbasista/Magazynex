@@ -1,13 +1,17 @@
 package pl.lbasista.magazynex.ui.product;
 
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
 
 import java.util.List;
 
@@ -55,6 +59,18 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             holder.textViewProductBarcode.setText(barcode);
         }
 
+        //Wyświetlanie zdjęcia
+        if (product.imageUri != null && !product.imageUri.trim().isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                            .load(Uri.parse(product.imageUri))
+                                    .placeholder(R.drawable.ic_no_image)
+                                            .error(R.drawable.ic_no_image)
+                                                    .into(holder.imageViewProduct);
+            holder.imageViewProduct.setVisibility(View.VISIBLE);
+        } else {
+            holder.imageViewProduct.setVisibility(View.GONE);
+        }
+
         //Zmiana koloru gwiazdki
         int starColorRes = product.favourite ? R.color.gold : R.color.light_gray;
         holder.textFavourite.setTextColor(
@@ -72,6 +88,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
     static class ProductViewHolder extends RecyclerView.ViewHolder {
         TextView textViewProductBarcode, textViewProductName, textViewProductDetails, textFavourite;
+        ImageView imageViewProduct;
 
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -79,6 +96,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             textViewProductName = itemView.findViewById(R.id.textViewProductName);
             textViewProductDetails = itemView.findViewById(R.id.textViewProductDetails);
             textFavourite = itemView.findViewById(R.id.textFavourite);
+            imageViewProduct = itemView.findViewById(R.id.imageProduct);
         }
     }
 }

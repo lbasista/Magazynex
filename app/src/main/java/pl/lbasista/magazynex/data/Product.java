@@ -15,11 +15,13 @@ public class Product {
     public String producer; //Producent
     public int quantity; //Ilość
     public boolean favourite; //Ulubione
-    public Product(String barcode, String name, int quantity, String producer, boolean favourite) {
+    public String imageUri; //Scieżka do zdjęcia
+    public Product(String barcode, String name, int quantity, String producer, boolean favourite, String imageUri) {
         this.barcode = barcode;
         this.name = name;
         this.quantity = quantity;
         this.producer = producer;
         this.favourite = favourite;
+        this.imageUri = imageUri;
     }
 }

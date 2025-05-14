@@ -72,6 +72,15 @@
             android:inputType="number"/>
 
         <Button
+            android:id="@+id/buttonSelectImage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Wybierz zdjęcie (opcjonalne)"
+            android:gravity="left|center"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/gray"/>
+
+        <Button
             android:id="@+id/buttonSaveProduct"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

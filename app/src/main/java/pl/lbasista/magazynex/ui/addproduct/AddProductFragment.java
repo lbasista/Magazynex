@@ -1,6 +1,12 @@
 package pl.lbasista.magazynex.ui.addproduct;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,7 +28,8 @@ import pl.lbasista.magazynex.data.ProductDao;
 public class AddProductFragment extends Fragment {
     private EditText editTextBarcode, editTextName, editTextProducer, editTextQuantity;
     private TextView textBarcodeError;
-    private Button buttonBarcodeSearch, buttonSave;
+    private Button buttonBarcodeSearch, buttonSelectImage, buttonSave;
+    private String selectedImageUri = null;
 
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -37,10 +44,18 @@ public class AddProductFragment extends Fragment {
         editTextName = view.findViewById(R.id.editTextProductName);
         editTextProducer = view.findViewById(R.id.editTextProductProducer);
         editTextQuantity = view.findViewById(R.id.editTextProductQuantity);
+        buttonSelectImage = view.findViewById(R.id.buttonSelectImage);
         buttonSave = view.findViewById(R.id.buttonSaveProduct);
 
         buttonBarcodeSearch.setOnClickListener(v -> searchByBarcode());
         buttonSave.setOnClickListener(v -> saveProduct());
+
+        buttonSelectImage.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.setType("image/*");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); //Uprawnienia do zdjęć
+            startActivityForResult(intent, 101);
+        });
     }
 
     private void searchByBarcode() {
@@ -65,11 +80,46 @@ public class AddProductFragment extends Fragment {
         }).start();
     }
 
+    //Zdjęcie produktu
+    @SuppressLint("WrongConstant")
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 101 && resultCode == Activity.RESULT_OK && data != null) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                selectedImageUri = uri.toString();
+
+                final int takeFlags = data.getFlags();
+                if ((takeFlags & Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION) != 0) {
+                    final int realFlags = takeFlags & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    try {
+                        requireContext().getContentResolver().takePersistableUriPermission(uri, realFlags);
+                    } catch (SecurityException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                //Nazwa pliku
+                String fileName = "Wybrano zdjęcie";
+                Cursor cursor = requireContext().getContentResolver().query(uri, null, null, null, null);
+                if (cursor != null) {
+                    int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (cursor.moveToFirst() && nameIndex >= 0) fileName = cursor.getString(nameIndex);
+                    cursor.close();
+                }
+                buttonSelectImage.setText("Wybrano: " + fileName);
+            }
+        }
+    }
+
     private void saveProduct() {
         String barcodeInput = editTextBarcode.getText().toString().trim();
         String productName = editTextName.getText().toString().trim();
         String producer = editTextProducer.getText().toString().trim();
         String quantityText = editTextQuantity.getText().toString().trim();
+        String imageUri = buttonSelectImage.getText().toString().trim();
 
         String barcode = barcodeInput.isEmpty() ? null : barcodeInput;
 
@@ -94,7 +144,7 @@ public class AddProductFragment extends Fragment {
             return;
         }
 
-        Product product = new Product(barcode, productName, quantity, producer, false);
+        Product product = new Product(barcode, productName, quantity, producer, false, selectedImageUri);
 
         new Thread(() -> {
             ProductDao dao = AppDatabase.getInstance(requireContext()).productDao();
