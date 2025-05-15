@@ -26,7 +26,7 @@ import pl.lbasista.magazynex.data.Product;
 import pl.lbasista.magazynex.data.ProductDao;
 
 public class AddProductFragment extends Fragment {
-    private EditText editTextBarcode, editTextName, editTextProducer, editTextQuantity;
+    private EditText editTextBarcode, editTextName, editTextProducer, editTextQuantity, editTextDescription;
     private TextView textBarcodeError;
     private Button buttonBarcodeSearch, buttonSelectImage, buttonSave;
     private String selectedImageUri = null;
@@ -44,6 +44,7 @@ public class AddProductFragment extends Fragment {
         editTextName = view.findViewById(R.id.editTextProductName);
         editTextProducer = view.findViewById(R.id.editTextProductProducer);
         editTextQuantity = view.findViewById(R.id.editTextProductQuantity);
+        editTextDescription = view.findViewById(R.id.editTextProductDescription);
         buttonSelectImage = view.findViewById(R.id.buttonSelectImage);
         buttonSave = view.findViewById(R.id.buttonSaveProduct);
 
@@ -119,7 +120,7 @@ public class AddProductFragment extends Fragment {
         String productName = editTextName.getText().toString().trim();
         String producer = editTextProducer.getText().toString().trim();
         String quantityText = editTextQuantity.getText().toString().trim();
-        String imageUri = buttonSelectImage.getText().toString().trim();
+        String description = editTextDescription.getText().toString().trim();
 
         String barcode = barcodeInput.isEmpty() ? null : barcodeInput;
 
@@ -144,7 +145,7 @@ public class AddProductFragment extends Fragment {
             return;
         }
 
-        Product product = new Product(barcode, productName, quantity, producer, false, selectedImageUri);
+        Product product = new Product(barcode, productName, quantity, producer, false, description, selectedImageUri);
 
         new Thread(() -> {
             ProductDao dao = AppDatabase.getInstance(requireContext()).productDao();

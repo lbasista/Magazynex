@@ -1,5 +1,7 @@
 package pl.lbasista.magazynex.ui.product;
 
+import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -79,6 +81,19 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
         //Po kliknięciu gwiazdki
         holder.textFavourite.setOnClickListener(v -> viewModel.toggleFavourite(product));
+
+        //Kliknięcie pozycji na liście
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), ProductDetailsActivity.class);
+            intent.putExtra("name", product.name);
+            intent.putExtra("producer", product.producer);
+            intent.putExtra("barcode", product.barcode);
+            intent.putExtra("quantity", product.quantity);
+            intent.putExtra("description", product.description);
+            intent.putExtra("imageUri", product.imageUri);
+
+            v.getContext().startActivity(intent);
+        });
     }
 
     @Override

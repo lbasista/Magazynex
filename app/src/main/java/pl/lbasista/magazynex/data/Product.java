@@ -3,6 +3,8 @@ package pl.lbasista.magazynex.data;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import org.jetbrains.annotations.Nullable;
+
 @Entity
 public class Product {
 
@@ -16,12 +18,15 @@ public class Product {
     public int quantity; //Ilość
     public boolean favourite; //Ulubione
     public String imageUri; //Scieżka do zdjęcia
-    public Product(String barcode, String name, int quantity, String producer, boolean favourite, String imageUri) {
+    public String description; //Opis
+
+    public Product(String barcode, String name, int quantity, String producer, boolean favourite, String description, String imageUri) {
         this.barcode = barcode;
         this.name = name;
         this.quantity = quantity;
         this.producer = producer;
         this.favourite = favourite;
+        this.description = description;
         this.imageUri = imageUri;
     }
 }
