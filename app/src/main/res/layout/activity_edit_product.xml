@@ -58,7 +58,8 @@
                 android:layout_weight="1"
                 android:id="@+id/buttonCancel"
                 android:text="Anuluj"
-                android:backgroundTint="@color/gray"
+                android:textColor="@color/red"
+                android:textStyle="bold"
                 android:layout_marginRight="4dp"/>
 
             <Button
@@ -67,6 +68,8 @@
                 android:layout_weight="1"
                 android:id="@+id/buttonSave"
                 android:text="Zapisz"
+                android:textColor="@color/green"
+                android:textStyle="bold"
                 android:layout_marginLeft="4dp"/>
         </LinearLayout>
     </LinearLayout>
