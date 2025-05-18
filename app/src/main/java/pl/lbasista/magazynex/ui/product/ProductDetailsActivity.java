@@ -52,8 +52,9 @@ public class ProductDetailsActivity extends AppCompatActivity {
                 textBarcode.setText(updatedProduct.barcode);
                 textQuantity.setText(String.valueOf(updatedProduct.quantity));
                 textDescription.setText(updatedProduct.description);
-                if (!updatedProduct.imageUri.isEmpty()) {
-                    imageViewProduct.setImageURI(Uri.parse(updatedProduct.imageUri));
+                String newImageUri = updatedProduct.imageUri;
+                if (newImageUri != null && !newImageUri.isEmpty()) {
+                    imageViewProduct.setImageURI(Uri.parse(newImageUri));
                     imageViewProduct.setVisibility(View.VISIBLE);
                 } else {
                     imageViewProduct.setVisibility(View.GONE);

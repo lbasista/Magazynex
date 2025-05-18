@@ -5,7 +5,7 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-@Database(entities = {Product.class, Order.class, OrderProduct.class}, version = 10, exportSchema = false)
+@Database(entities = {Product.class, Order.class, OrderProduct.class}, version = 11, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract ProductDao productDao();
     public abstract OrderDao orderDao();
