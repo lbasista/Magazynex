@@ -40,4 +40,7 @@ public interface ProductDao {
             "producer LIKE '%' || :search || '%' OR " +
             "barcode LIKE '%' || :search || '%'")
     LiveData<List<Product>> searchProducts(String search);
+
+    @Query("SELECT * FROM Product")
+    List<Product> getAllSync();
 }

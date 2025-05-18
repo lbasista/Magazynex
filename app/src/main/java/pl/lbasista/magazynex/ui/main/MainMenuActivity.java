@@ -7,13 +7,13 @@ import android.widget.LinearLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
 import pl.lbasista.magazynex.R;
-import pl.lbasista.magazynex.ui.about.AboutFragment;
+import pl.lbasista.magazynex.ui.orders.OrdersFragment;
 import pl.lbasista.magazynex.ui.addproduct.AddProductFragment;
 import pl.lbasista.magazynex.ui.product.ProductListFragment;
 import pl.lbasista.magazynex.ui.product.FavouriteFragment;
 
 public class MainMenuActivity extends AppCompatActivity {
-    private LinearLayout menuAdd, menuProducts, menuFav, menuAbout;
+    private LinearLayout menuAdd, menuProducts, menuFav, menuOrders;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,8 +24,8 @@ public class MainMenuActivity extends AppCompatActivity {
         //Znajdź widok
         menuAdd = findViewById(R.id.menuAdd);
         menuProducts = findViewById(R.id.menuProducts);
-        menuAbout = findViewById(R.id.menuAbout);
         menuFav = findViewById(R.id.menuFav);
+        menuOrders = findViewById(R.id.menuOrders);
 
         //Domyślne okno
         loadFragment(new ProductListFragment());
@@ -44,9 +44,9 @@ public class MainMenuActivity extends AppCompatActivity {
             loadFragment(new FavouriteFragment());
             selectMenu(menuFav);
         });
-        menuAbout.setOnClickListener(v -> {
-            loadFragment(new AboutFragment());
-            selectMenu(menuAbout);
+        menuOrders.setOnClickListener(v -> {
+            loadFragment(new OrdersFragment());
+            selectMenu(menuOrders);
         });
     }
 
@@ -55,7 +55,7 @@ public class MainMenuActivity extends AppCompatActivity {
         menuAdd.setSelected(false);
         menuProducts.setSelected(false);
         menuFav.setSelected(false);
-        menuAbout.setSelected(false);
+        menuOrders.setSelected(false);
         //Ustaw tło na aktywnym
         selected.setSelected(true);
     }

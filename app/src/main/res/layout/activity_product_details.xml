@@ -18,7 +18,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="⬅️ Powrót do listy"
+                android:text="⬅️ Powrót"
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="left"
@@ -144,5 +144,29 @@
                     android:layout_marginTop="8dp"/>
             </TableRow>
         </TableLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/gray"
+            android:layout_marginVertical="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="➕ Dodaj do listy"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="left"
+            android:id="@+id/tvAddToOrder"
+            android:textSize="16sp"
+            android:textColor="@color/gray"
+            android:layout_marginTop="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/textOrderLists"
+            android:visibility="gone"/>
     </LinearLayout>
 </ScrollView>
