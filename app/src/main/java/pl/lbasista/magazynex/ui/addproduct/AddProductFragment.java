@@ -8,9 +8,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -20,16 +22,22 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
+import pl.lbasista.magazynex.data.ApplicationCategory;
+import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Product;
 import pl.lbasista.magazynex.data.ProductDao;
+import pl.lbasista.magazynex.ui.product.AddApplicationCategoryDialogFragment;
 
 public class AddProductFragment extends Fragment {
     private EditText editTextBarcode, editTextName, editTextProducer, editTextQuantity, editTextDescription;
     private TextView textBarcodeError;
     private Button buttonBarcodeSearch, buttonSelectImage, buttonSave;
     private String selectedImageUri = null;
+    private int selectedApplicationCategoryId = 0; //0 = brak kategorii
 
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -57,6 +65,8 @@ public class AddProductFragment extends Fragment {
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); //Uprawnienia do zdjęć
             startActivityForResult(intent, 101);
         });
+
+        setupApplicationCategoryDropdown(view);
     }
 
     private void searchByBarcode() {
@@ -115,6 +125,48 @@ public class AddProductFragment extends Fragment {
         }
     }
 
+    private void setupApplicationCategoryDropdown(View view) {
+        MaterialAutoCompleteTextView dropdown = view.findViewById(R.id.dropdownApplication);
+
+        //Pobierz listę
+        ApplicationCategoryDao dao = AppDatabase.getInstance(requireContext()).applicationCategoryDao();
+
+        dao.getAll().observe(getViewLifecycleOwner(), categories -> {
+            //Adapter do wyświetlania kategorii w dropdownie
+            ArrayAdapter<ApplicationCategory> adapter = new ArrayAdapter<>(
+                    requireContext(),
+                    android.R.layout.simple_dropdown_item_1line,
+                    categories
+            );
+            dropdown.setAdapter(adapter);
+
+            if (categories.isEmpty()) {
+                dropdown.setHint("Brak kategorii - dodaj nową");
+                Toast.makeText(getContext(), "Brak dostępnych zastosowań. Dodaj nowe", Toast.LENGTH_SHORT).show();
+            }
+
+            dropdown.setOnItemClickListener((parent, v, position, id) -> {
+                ApplicationCategory selected = adapter.getItem(position);
+                if (selected != null) {
+                    selectedApplicationCategoryId = selected.id; //Zapis wybranej kategorii
+                }
+            });
+            dropdown.setOnClickListener(v -> dropdown.showDropDown());
+            dropdown.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) dropdown.showDropDown();
+            });
+        });
+    }
+
+    private void setupInputs(View view) {
+        TextView textAddApplication = view.findViewById(R.id.textAddApplicationCategory);
+
+        textAddApplication.setOnClickListener(v -> {
+            AddApplicationCategoryDialogFragment dialog = new AddApplicationCategoryDialogFragment();
+            dialog.show(getParentFragmentManager(), "AddApplicationCategoryDialog");
+        });
+    }
+
     private void saveProduct() {
         String barcodeInput = editTextBarcode.getText().toString().trim();
         String productName = editTextName.getText().toString().trim();
@@ -145,7 +197,7 @@ public class AddProductFragment extends Fragment {
             return;
         }
 
-        Product product = new Product(barcode, productName, quantity, producer, false, description, selectedImageUri);
+        Product product = new Product(barcode, productName, quantity, producer, false, selectedApplicationCategoryId, description, selectedImageUri);
 
         new Thread(() -> {
             ProductDao dao = AppDatabase.getInstance(requireContext()).productDao();

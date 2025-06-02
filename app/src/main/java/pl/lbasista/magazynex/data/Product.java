@@ -19,13 +19,15 @@ public class Product {
     public boolean favourite; //Ulubione
     public String imageUri; //Scieżka do zdjęcia
     public String description; //Opis
+    public int applicationCategoryId; //Kategoria
 
-    public Product(String barcode, String name, int quantity, String producer, boolean favourite, String description, String imageUri) {
+    public Product(String barcode, String name, int quantity, String producer, boolean favourite, int applicationCategoryId, String description, String imageUri) {
         this.barcode = barcode;
         this.name = name;
         this.quantity = quantity;
         this.producer = producer;
         this.favourite = favourite;
+        this.applicationCategoryId = applicationCategoryId;
         this.description = description;
         this.imageUri = imageUri;
     }

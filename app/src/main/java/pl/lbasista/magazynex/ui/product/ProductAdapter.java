@@ -18,6 +18,9 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 import pl.lbasista.magazynex.R;
+import pl.lbasista.magazynex.data.AppDatabase;
+import pl.lbasista.magazynex.data.ApplicationCategory;
+import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Product;
 
 public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
@@ -61,6 +64,23 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             holder.textViewProductBarcode.setText(barcode);
         }
 
+        //Kategoria
+        if (product.applicationCategoryId != 0) {
+            //Jeśli ma
+            new Thread(() -> {
+                ApplicationCategoryDao dao = AppDatabase.getInstance(holder.itemView.getContext()).applicationCategoryDao();
+
+                ApplicationCategory category = dao.getById(product.applicationCategoryId);
+                if (category != null) {
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        holder.textViewProductApplication.setText(category.name);
+                    });
+                }
+            }).start();
+        } else {
+            holder.textViewProductApplication.setVisibility(View.GONE);
+        }
+
         //Wyświetlanie zdjęcia
         if (product.imageUri != null && !product.imageUri.trim().isEmpty()) {
             Glide.with(holder.itemView.getContext())
@@ -102,7 +122,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     }
 
     static class ProductViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewProductBarcode, textViewProductName, textViewProductDetails, textFavourite;
+        TextView textViewProductBarcode, textViewProductName, textViewProductDetails, textFavourite, textViewProductApplication;
         ImageView imageViewProduct;
 
         public ProductViewHolder(@NonNull View itemView) {
@@ -112,6 +132,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             textViewProductDetails = itemView.findViewById(R.id.textViewProductDetails);
             textFavourite = itemView.findViewById(R.id.textFavourite);
             imageViewProduct = itemView.findViewById(R.id.imageProduct);
+            textViewProductApplication = itemView.findViewById(R.id.textViewProductApplication);
         }
     }
 }

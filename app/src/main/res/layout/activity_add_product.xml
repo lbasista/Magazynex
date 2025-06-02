@@ -64,6 +64,30 @@
             android:hint="Producent"
             android:inputType="text"/>
 
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Zastosowanie">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/dropdownApplication"
+                android:inputType="none"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/textAddApplicationCategory"
+            android:text="➕ Dodaj nowe zastosowanie"
+            android:textSize="14sp"
+            android:textColor="@color/colorPrimary"
+            android:paddingTop="4dp"
+            android:clickable="true"
+            android:focusable="true"/>
+
+
         <EditText
             android:id="@+id/editTextProductQuantity"
             android:layout_width="match_parent"
