@@ -166,6 +166,17 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/buttonDeleteProduct"
+            android:text="🗑️ Usuń produkt"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="left"
+            android:textSize="16sp"
+            android:textColor="@color/gray"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:id="@+id/textOrderLists"
             android:visibility="gone"/>
     </LinearLayout>

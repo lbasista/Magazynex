@@ -4,6 +4,7 @@ import android.provider.ContactsContract;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
@@ -40,6 +41,10 @@ public interface ProductDao {
             "producer LIKE '%' || :search || '%' OR " +
             "barcode LIKE '%' || :search || '%'")
     LiveData<List<Product>> searchProducts(String search);
+
+    //Usuwanie produktu
+    @Delete
+    void delete(Product product);
 
     @Query("SELECT * FROM Product")
     List<Product> getAllSync();

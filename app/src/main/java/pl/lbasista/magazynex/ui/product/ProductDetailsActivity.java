@@ -1,18 +1,34 @@
 package pl.lbasista.magazynex.ui.product;
 
+import android.app.AlertDialog;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.List;
+
 import pl.lbasista.magazynex.R;
+import pl.lbasista.magazynex.data.AppDatabase;
+import pl.lbasista.magazynex.data.Order;
+import pl.lbasista.magazynex.data.OrderDao;
+import pl.lbasista.magazynex.data.OrderProduct;
+import pl.lbasista.magazynex.data.OrderProductDao;
+import pl.lbasista.magazynex.data.Product;
+import pl.lbasista.magazynex.data.ProductDao;
 
 public class ProductDetailsActivity extends AppCompatActivity {
-    private TextView textProductName, textProducer, textBarcode, textQuantity, textDescription;
+    private TextView textProductName, textProducer, textBarcode, textQuantity, textDescription, textAddToOrder, buttonDelete;
     private ImageView imageViewProduct;
+    private ProductDao productDao;
+    private OrderDao orderDao;
+    private OrderProductDao orderProductDao;
+    private int currentProductId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +42,11 @@ public class ProductDetailsActivity extends AppCompatActivity {
         textQuantity = findViewById(R.id.textQuantity);
         textDescription = findViewById(R.id.textDescription);
         imageViewProduct = findViewById(R.id.imageProduct);
+        textAddToOrder = findViewById(R.id.tvAddToOrder);
+        buttonDelete = findViewById(R.id.buttonDeleteProduct);
+        productDao = AppDatabase.getInstance(this).productDao();
+        orderDao = AppDatabase.getInstance(this).orderDao();
+        orderProductDao = AppDatabase.getInstance(this).orderProductDao();
 
         //Powrót do listy produktów
         findViewById(R.id.tvBack).setOnClickListener(v -> finish());
@@ -63,6 +84,76 @@ public class ProductDetailsActivity extends AppCompatActivity {
             sheet.show(getSupportFragmentManager(), "editProduct");
         });
         loadFromIntent();
+
+        //Zmienne do operacji na produktach
+        String name = getIntent().getStringExtra("name");
+        String producer = getIntent().getStringExtra("producer");
+
+        //Usuwanie produktu
+        buttonDelete.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Usuwanie produktu")
+                    .setMessage("Czy chcesz usunąć ten produkt z bazy?")
+                    .setPositiveButton("Tak", (dialog, which) -> {
+//                        String name = getIntent().getStringExtra("name");
+//                        String producer = getIntent().getStringExtra("producer");
+
+                        new Thread(() -> {
+                            Product toDelete = productDao.getByNameAndProducer(name, producer);
+                            if (toDelete != null) {
+                                productDao.delete(toDelete);
+
+                                runOnUiThread(() -> {
+                                    Toast.makeText(this, "Produkt usunięty", Toast.LENGTH_SHORT).show();
+                                    finish();
+                                });
+                            }
+                        }).start();
+                    })
+                    .setNegativeButton("Anuluj", null)
+                    .show();
+        });
+
+        //Dadawanie do listy
+        new Thread(() -> {
+            Product product = productDao.getByNameAndProducer(name, producer);
+            if (product != null) currentProductId = product.id;
+        }).start();
+
+        textAddToOrder.setOnClickListener(v -> {
+            if (currentProductId == -1) return; //Brak wczytanego produktu
+
+            new Thread(() -> {
+                List<Order> orders = orderDao.getAllOrders();
+                String[] names = new String[orders.size()];
+                for (int i = 0; i < orders.size(); i++) {
+                    names[i] = orders.get(i).name;
+                }
+
+                runOnUiThread(() -> {
+                    new AlertDialog.Builder(this)
+                            .setTitle("Dodawanie do listy")
+                            .setItems(names, (dialog, which) -> {
+                                Order selectedOrder = orders.get(which);
+                                new Thread(() -> {
+                                    long result = orderProductDao.insert(new OrderProduct(selectedOrder.id, currentProductId));
+
+                                    if (result != -1) orderDao.addProductToOrder(selectedOrder.id);
+
+                                    runOnUiThread(() -> {
+                                        if (result == -1) {
+                                            Toast.makeText(this, "Produkt już jest na tej liście", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Toast.makeText(this, "Dodano do listy " + selectedOrder.name, Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                }).start();
+                            })
+                            .setNegativeButton("Anuluj", null)
+                            .show();
+                });
+            }).start();
+        });
     }
 
     private void loadFromIntent() {
