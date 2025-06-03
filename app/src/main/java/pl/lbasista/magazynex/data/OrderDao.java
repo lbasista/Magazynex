@@ -16,6 +16,9 @@ public interface OrderDao {
     @Query("SELECT * FROM orders")
     List<Order> getAllOrders();
 
+    @Query("SELECT * FROM orders WHERE id = :id LIMIT 1")
+    Order getById(int id);
+
     @Update
     void update(Order order);
 

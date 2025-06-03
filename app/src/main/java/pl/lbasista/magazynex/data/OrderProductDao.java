@@ -12,6 +12,9 @@ public interface OrderProductDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     long insert(OrderProduct orderProduct);
 
+    @Query("SELECT * FROM order_product WHERE productId = :productId")
+    List<OrderProduct> getByProductId(int productId);
+
     @Query("SELECT p.* FROM Product p INNER JOIN order_product op ON p.id = op.productId WHERE op.orderId = :orderId")
     List<Product> getProductsForOrder(int orderId);
 

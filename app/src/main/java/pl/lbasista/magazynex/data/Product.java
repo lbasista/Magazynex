@@ -1,6 +1,7 @@
 package pl.lbasista.magazynex.data;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import org.jetbrains.annotations.Nullable;
@@ -20,6 +21,8 @@ public class Product {
     public String imageUri; //Scieżka do zdjęcia
     public String description; //Opis
     public int applicationCategoryId; //Kategoria
+    @Ignore
+    public String applicationName; //Nazwa kategorii
 
     public Product(String barcode, String name, int quantity, String producer, boolean favourite, int applicationCategoryId, String description, String imageUri) {
         this.barcode = barcode;

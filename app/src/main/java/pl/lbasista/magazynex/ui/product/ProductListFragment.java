@@ -20,6 +20,9 @@ import java.util.Comparator;
 import java.util.List;
 
 import pl.lbasista.magazynex.R;
+import pl.lbasista.magazynex.data.AppDatabase;
+import pl.lbasista.magazynex.data.ApplicationCategory;
+import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Product;
 
 public class ProductListFragment extends Fragment implements SortDialogFragment.SortDialogListener {
@@ -129,6 +132,40 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
                 break;
             case "QUANTITY_DESC":
                 currentList.sort((p1, p2) -> Integer.compare(p2.quantity, p1.quantity));
+                break;
+            case "CATEGORY_ASC":
+                new Thread(() -> {
+                    ApplicationCategoryDao dao = AppDatabase.getInstance(requireContext()).applicationCategoryDao();
+
+                    for (Product p : currentList) {
+                        if (p.applicationCategoryId != 0) {
+                            ApplicationCategory cat = dao.getById(p.applicationCategoryId);
+                            p.applicationName = cat != null ? cat.name.toLowerCase() : "zzzzz";
+                        } else {
+                            p.applicationName = "zzzzz";
+                        }
+                    }
+
+                    currentList.sort(Comparator.comparing(p -> p.applicationName));
+                    requireActivity().runOnUiThread(() -> productAdapter.notifyDataSetChanged());
+                }).start();
+                break;
+            case "CATEGORY_DESC":
+                new Thread(() -> {
+                    ApplicationCategoryDao dao = AppDatabase.getInstance(requireContext()).applicationCategoryDao();
+
+                    for (Product p : currentList) {
+                        if (p.applicationCategoryId != 0) {
+                            ApplicationCategory cat = dao.getById(p.applicationCategoryId);
+                            p.applicationName = cat != null ? cat.name.toLowerCase() : "zzzzz";
+                        } else {
+                            p.applicationName = "zzzzz";
+                        }
+                    }
+
+                    currentList.sort((p1, p2) -> p2.applicationName.compareTo(p1.applicationName));
+                    requireActivity().runOnUiThread(() -> productAdapter.notifyDataSetChanged());
+                }).start();
                 break;
         }
         productAdapter.notifyDataSetChanged();

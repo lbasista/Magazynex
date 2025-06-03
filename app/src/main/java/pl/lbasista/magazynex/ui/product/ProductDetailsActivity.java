@@ -3,6 +3,7 @@ package pl.lbasista.magazynex.ui.product;
 import android.app.AlertDialog;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.ImageView;
@@ -11,10 +12,13 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
+import pl.lbasista.magazynex.data.ApplicationCategory;
+import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Order;
 import pl.lbasista.magazynex.data.OrderDao;
 import pl.lbasista.magazynex.data.OrderProduct;
@@ -23,17 +27,24 @@ import pl.lbasista.magazynex.data.Product;
 import pl.lbasista.magazynex.data.ProductDao;
 
 public class ProductDetailsActivity extends AppCompatActivity {
-    private TextView textProductName, textProducer, textBarcode, textQuantity, textDescription, textAddToOrder, buttonDelete;
+    private TextView textProductName, textProducer, textBarcode, textQuantity, textCategory, textDescription, textAddToOrder, buttonDelete, textOrderLists;
     private ImageView imageViewProduct;
     private ProductDao productDao;
     private OrderDao orderDao;
     private OrderProductDao orderProductDao;
+    private ApplicationCategoryDao applicationCategoryDao;
     private int currentProductId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_product_details);
+
+        //Inicjalizacja DAO
+        productDao = AppDatabase.getInstance(this).productDao();
+        orderDao = AppDatabase.getInstance(this).orderDao();
+        orderProductDao = AppDatabase.getInstance(this).orderProductDao();
+        applicationCategoryDao = AppDatabase.getInstance(this).applicationCategoryDao();
 
         //Inicjalizacja pól widoków
         textProductName = findViewById(R.id.textProductName);
@@ -44,9 +55,8 @@ public class ProductDetailsActivity extends AppCompatActivity {
         imageViewProduct = findViewById(R.id.imageProduct);
         textAddToOrder = findViewById(R.id.tvAddToOrder);
         buttonDelete = findViewById(R.id.buttonDeleteProduct);
-        productDao = AppDatabase.getInstance(this).productDao();
-        orderDao = AppDatabase.getInstance(this).orderDao();
-        orderProductDao = AppDatabase.getInstance(this).orderProductDao();
+        textCategory = findViewById(R.id.textCategory);
+        textOrderLists = findViewById(R.id.textOrderLists);
 
         //Powrót do listy produktów
         findViewById(R.id.tvBack).setOnClickListener(v -> finish());
@@ -88,6 +98,18 @@ public class ProductDetailsActivity extends AppCompatActivity {
         //Zmienne do operacji na produktach
         String name = getIntent().getStringExtra("name");
         String producer = getIntent().getStringExtra("producer");
+
+        //Kategoria i lista zamówień
+        new Thread(() -> {
+            Product p = productDao.getByNameAndProducer(name, producer);
+            if (p != null) {
+                currentProductId = p.id;
+                runOnUiThread(() -> {
+                    displayCategory(p.applicationCategoryId);
+                    displayOrderLists(currentProductId);
+                });
+            }
+        }).start();
 
         //Usuwanie produktu
         buttonDelete.setOnClickListener(v -> {
@@ -145,6 +167,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
                                             Toast.makeText(this, "Produkt już jest na tej liście", Toast.LENGTH_SHORT).show();
                                         } else {
                                             Toast.makeText(this, "Dodano do listy " + selectedOrder.name, Toast.LENGTH_SHORT).show();
+                                            displayOrderLists(currentProductId);
                                         }
                                     });
                                 }).start();
@@ -154,6 +177,41 @@ public class ProductDetailsActivity extends AppCompatActivity {
                 });
             }).start();
         });
+    }
+
+    private void displayOrderLists(int productId) {
+        new Thread(() -> {
+            List<OrderProduct> relations = orderProductDao.getByProductId(productId);
+
+            List<String> orderNames = new ArrayList<>();
+            for (OrderProduct rel : relations) {
+                Order o = orderDao.getById(rel.orderId);
+                if (o != null) orderNames.add(o.name);
+            }
+
+            String displayText;
+            if (orderNames.isEmpty()) {
+                displayText = ""; //Brak przypisania do list
+            } else {
+                displayText = "Na liście: " + TextUtils.join(", ", orderNames);
+            }
+            runOnUiThread(() -> {
+                textOrderLists.setVisibility(TextView.VISIBLE);
+                textOrderLists.setText(displayText);
+            });
+        }).start();
+    }
+
+    private void displayCategory(int categoryId) {
+        if (categoryId == 0) {
+            textCategory.setText(""); //Brak kategorii
+            return;
+        }
+        new Thread(() -> {
+            ApplicationCategory cat = applicationCategoryDao.getById(categoryId);
+            String categoryName = (cat != null ? cat.name : "");
+            runOnUiThread(() -> textCategory.setText(categoryName));
+        }).start();
     }
 
     private void loadFromIntent() {

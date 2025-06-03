@@ -20,7 +20,8 @@ public class SortDialogFragment extends DialogFragment {
                 "Kod rosnąco", "Kod malejąco",
                 "Nazwa (A-Z)", "Nazwa (Z-A)",
                 "Producent (A-Z)","Producent (Z-A)",
-                "Ilość rosnąco","Ilość malejąco"
+                "Ilość rosnąco","Ilość malejąco",
+                "Zastosowanie (A-Z)", "Zastosowanie (Z-A)"
         };
         return new AlertDialog.Builder(getActivity())
                 .setTitle("Sortuj według")
@@ -34,6 +35,8 @@ public class SortDialogFragment extends DialogFragment {
                         case 5: selectedSort = "PRODUCER_DESC"; break;
                         case 6: selectedSort = "QUANTITY_ASC"; break;
                         case 7: selectedSort = "QUANTITY_DESC"; break;
+                        case 8: selectedSort = "CATEGORY_ASC"; break;
+                        case 9: selectedSort = "CATEGORY_DESC"; break;
                     }
                 })
                 .setNegativeButton("Anuluj", null)
