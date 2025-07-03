@@ -67,7 +67,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Zastosowanie">
+            android:hint="Kategoria">
 
             <com.google.android.material.textfield.MaterialAutoCompleteTextView
                 android:layout_width="match_parent"
@@ -80,7 +80,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/textAddApplicationCategory"
-            android:text="➕ Dodaj nowe zastosowanie"
+            android:text="➕ Dodaj nową kategorię"
             android:textSize="14sp"
             android:textColor="@color/colorPrimary"
             android:paddingTop="4dp"

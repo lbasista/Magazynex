@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +29,7 @@ import pl.lbasista.magazynex.data.ApplicationCategory;
 import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Product;
 import pl.lbasista.magazynex.data.ProductDao;
-import pl.lbasista.magazynex.ui.product.AddApplicationCategoryDialogFragment;
+import pl.lbasista.magazynex.ui.product.AddCategoryBottomSheet;
 
 public class AddProductFragment extends Fragment {
     private EditText editTextBarcode, editTextName, editTextProducer, editTextQuantity, editTextDescription;
@@ -67,6 +66,7 @@ public class AddProductFragment extends Fragment {
         });
 
         setupApplicationCategoryDropdown(view);
+        setupInputs(view);
     }
 
     private void searchByBarcode() {
@@ -141,8 +141,7 @@ public class AddProductFragment extends Fragment {
             dropdown.setAdapter(adapter);
 
             if (categories.isEmpty()) {
-                dropdown.setHint("Brak kategorii - dodaj nową");
-                Toast.makeText(getContext(), "Brak dostępnych zastosowań. Dodaj nowe", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Brak dostępnych kategorii. Dodaj nową", Toast.LENGTH_SHORT).show();
             }
 
             dropdown.setOnItemClickListener((parent, v, position, id) -> {
@@ -162,8 +161,9 @@ public class AddProductFragment extends Fragment {
         TextView textAddApplication = view.findViewById(R.id.textAddApplicationCategory);
 
         textAddApplication.setOnClickListener(v -> {
-            AddApplicationCategoryDialogFragment dialog = new AddApplicationCategoryDialogFragment();
-            dialog.show(getParentFragmentManager(), "AddApplicationCategoryDialog");
+            AddCategoryBottomSheet bottomSheet = new AddCategoryBottomSheet();
+            bottomSheet.setOnCategoryAddedListener(() -> {});
+            bottomSheet.show(getParentFragmentManager(), "AddApplicationBottomSheet");
         });
     }
 

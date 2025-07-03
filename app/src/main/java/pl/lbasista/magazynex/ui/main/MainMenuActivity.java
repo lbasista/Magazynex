@@ -6,6 +6,9 @@ import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
+
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.ui.orders.OrdersFragment;
 import pl.lbasista.magazynex.ui.addproduct.AddProductFragment;
@@ -13,7 +16,7 @@ import pl.lbasista.magazynex.ui.product.ProductListFragment;
 import pl.lbasista.magazynex.ui.product.FavouriteFragment;
 
 public class MainMenuActivity extends AppCompatActivity {
-    private LinearLayout menuAdd, menuProducts, menuFav, menuOrders;
+    private BottomNavigationView bottomNavigation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,44 +25,32 @@ public class MainMenuActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main_menu);
 
         //Znajdź widok
-        menuAdd = findViewById(R.id.menuAdd);
-        menuProducts = findViewById(R.id.menuProducts);
-        menuFav = findViewById(R.id.menuFav);
-        menuOrders = findViewById(R.id.menuOrders);
+        bottomNavigation = findViewById(R.id.bottom_navigation);
 
-        //Domyślne okno
+        //Domyślna zakładka
+        bottomNavigation.setSelectedItemId(R.id.nav_products);
         loadFragment(new ProductListFragment());
-        selectMenu(menuProducts);
 
         //Wybieranie okna
-        menuProducts.setOnClickListener(v -> {
-            loadFragment(new ProductListFragment());
-            selectMenu(menuProducts);
-        });
-        menuAdd.setOnClickListener(v -> {
-            loadFragment(new AddProductFragment());
-            selectMenu(menuAdd);
-        });
-        menuFav.setOnClickListener(v -> {
-            loadFragment(new FavouriteFragment());
-            selectMenu(menuFav);
-        });
-        menuOrders.setOnClickListener(v -> {
-            loadFragment(new OrdersFragment());
-            selectMenu(menuOrders);
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            switch (item.getItemId()){
+                case R.id.nav_add:
+                    loadFragment(new AddProductFragment());
+                    return true;
+                case R.id.nav_products:
+                    loadFragment(new ProductListFragment());
+                    return true;
+                case R.id.nav_fav:
+                    loadFragment(new FavouriteFragment());
+                    return true;
+                case R.id.nav_orders:
+                    loadFragment(new OrdersFragment());
+                    return true;
+                default:
+                    return false;
+            }
         });
     }
-
-    private void selectMenu(LinearLayout selected) {
-        //Usuń zaznaczenie tła
-        menuAdd.setSelected(false);
-        menuProducts.setSelected(false);
-        menuFav.setSelected(false);
-        menuOrders.setSelected(false);
-        //Ustaw tło na aktywnym
-        selected.setSelected(true);
-    }
-
     private void loadFragment(Fragment fragment) {
         getSupportFragmentManager()
                 .beginTransaction()
