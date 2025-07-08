@@ -2,6 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="10dp">
 
     <LinearLayout
@@ -9,113 +10,113 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Dodaj produkt"
-            android:textSize="22sp"
-            android:textColor="@color/colorPrimary"
+            android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+            android:textColor="?attr/colorPrimary"
             android:textStyle="bold"
             android:padding="8dp"
             android:layout_marginBottom="24dp"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="14dp">
 
-            <EditText
-                android:layout_width="0dp"
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:hint="Kod kreskowy"
+            android:id="@+id/textInputLayoutBarcode"
+            app:startIconDrawable="@drawable/ic_barcode">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:id="@+id/editTextProductBarcode"
-                android:hint="Kod kreskowy (opcjonalne)"
+                android:paddingStart="48dp"
+                android:id="@+id/textInputBarcode"
                 android:inputType="number"/>
+        </com.google.android.material.textfield.TextInputLayout>
 
-            <Button
-                android:layout_width="wrap_content"
-                android:minWidth="0dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/buttonBarcodeSearch"
-                android:text="🔎"/>
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/textBarcodeError"
-            android:text="Brak pasującego produktu w bazie. Wprowadź dane ręcznie."
-            android:textColor="@color/design_default_color_error"
-            android:visibility="gone"
-            android:layout_marginBottom="16dp"/>
-
-        <EditText
-            android:id="@+id/editTextProductName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nazwa produktu"
-            android:inputType="text"/>
-
-        <EditText
-            android:id="@+id/editTextProductProducer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Producent"
-            android:inputType="text"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/searchBarcode"
+            android:minWidth="0dp"
+            app:iconPadding="0dp"
+            app:icon="@drawable/ic_data_search"
+            app:iconGravity="textStart"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            app:iconTint="?attr/colorSecondary"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Kategoria">
+            android:hint="Nazwa produktu*"
+            app:startIconDrawable="@drawable/ic_nameplate"
+            android:layout_marginBottom="14dp">
 
-            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/dropdownApplication"
-                android:inputType="none"/>
+                android:id="@+id/textInputName"
+                android:paddingStart="48dp"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/textAddApplicationCategory"
-            android:text="➕ Dodaj nową kategorię"
-            android:textSize="14sp"
-            android:textColor="@color/colorPrimary"
-            android:paddingTop="4dp"
-            android:clickable="true"
-            android:focusable="true"/>
-
-
-        <EditText
-            android:id="@+id/editTextProductQuantity"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ilość"
-            android:inputType="number"/>
+            android:hint="Producent*"
+            app:startIconDrawable="@drawable/ic_factory"
+            android:layout_marginBottom="14dp">
 
-        <EditText
-            android:id="@+id/editTextProductDescription"
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/textInputProducer"
+                android:paddingStart="48dp"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Opis (opcjonalne)"
-            android:inputType="textMultiLine"/>
+            android:hint="Ilość*"
+            app:startIconDrawable="@drawable/ic_number"
+            android:layout_marginBottom="14dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/textInputQuantity"
+                android:paddingStart="48dp"
+                android:inputType="number"/>
+        </com.google.android.material.textfield.TextInputLayout>
 
         <Button
-            android:id="@+id/buttonSelectImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/moreDetailsButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:text="Więcej szczegółów"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="14dp"/>
+
+        <ViewStub
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Wybierz zdjęcie (opcjonalne)"
-            android:gravity="left|center"
-            android:layout_marginTop="16dp"
-            android:backgroundTint="@color/gray"/>
+            android:id="@+id/moreDetailsStub"
+            android:layout="@layout/activity_more_details"/>
 
         <Button
             android:id="@+id/buttonSaveProduct"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Zapisz produkt"
-            android:layout_marginTop="16dp"/>
+            android:text="Zapisz produkt"/>
     </LinearLayout>
 </ScrollView>

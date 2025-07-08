@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+<LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="14dp">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:id="@+id/textInputLayoutCategory"
+            android:hint="Kategoria"
+            app:startIconDrawable="@drawable/ic_category">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/dropdownCategory"
+                android:inputType="none"
+                android:paddingStart="48dp"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/addCategory"
+            android:minWidth="0dp"
+            app:iconPadding="0dp"
+            app:icon="@drawable/ic_plus"
+            app:iconGravity="textStart"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            app:iconTint="?attr/colorSecondary"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Opis"
+        app:startIconDrawable="@drawable/ic_comment"
+        android:layout_marginBottom="25dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textInputDescription"
+            android:paddingStart="48dp"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        android:id="@+id/buttonSelectImage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Wybierz zdjęcie"
+        android:gravity="left|center"
+        app:icon="@drawable/ic_camera"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:textColor="?attr/colorSecondary"
+        app:iconTint="?attr/colorSecondary"
+        android:layout_marginBottom="14dp"/>
+</LinearLayout>

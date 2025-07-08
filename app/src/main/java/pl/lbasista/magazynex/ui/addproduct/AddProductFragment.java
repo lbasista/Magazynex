@@ -6,11 +6,14 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.OpenableColumns;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewStub;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,6 +25,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+import com.google.android.material.textfield.TextInputLayout;
 
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
@@ -33,8 +37,8 @@ import pl.lbasista.magazynex.ui.product.AddCategoryBottomSheet;
 
 public class AddProductFragment extends Fragment {
     private EditText editTextBarcode, editTextName, editTextProducer, editTextQuantity, editTextDescription;
-    private TextView textBarcodeError;
-    private Button buttonBarcodeSearch, buttonSelectImage, buttonSave;
+    TextInputLayout inputBarcodeLayout;
+    private Button buttonBarcodeSearch, buttonSelectImage, buttonSave, buttonMoreDetails;
     private String selectedImageUri = null;
     private int selectedApplicationCategoryId = 0; //0 = brak kategorii
 
@@ -45,28 +49,37 @@ public class AddProductFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        editTextBarcode = view.findViewById(R.id.editTextProductBarcode);
-        buttonBarcodeSearch = view.findViewById(R.id.buttonBarcodeSearch);
-        textBarcodeError = view.findViewById(R.id.textBarcodeError);
-        editTextName = view.findViewById(R.id.editTextProductName);
-        editTextProducer = view.findViewById(R.id.editTextProductProducer);
-        editTextQuantity = view.findViewById(R.id.editTextProductQuantity);
-        editTextDescription = view.findViewById(R.id.editTextProductDescription);
-        buttonSelectImage = view.findViewById(R.id.buttonSelectImage);
+        editTextBarcode = view.findViewById(R.id.textInputBarcode);
+        buttonBarcodeSearch = view.findViewById(R.id.searchBarcode);
+        inputBarcodeLayout = view.findViewById(R.id.textInputLayoutBarcode);
+        editTextName = view.findViewById(R.id.textInputName);
+        editTextProducer = view.findViewById(R.id.textInputProducer);
+        editTextQuantity = view.findViewById(R.id.textInputQuantity);
+        buttonMoreDetails = view.findViewById(R.id.moreDetailsButton);
         buttonSave = view.findViewById(R.id.buttonSaveProduct);
 
         buttonBarcodeSearch.setOnClickListener(v -> searchByBarcode());
         buttonSave.setOnClickListener(v -> saveProduct());
 
-        buttonSelectImage.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-            intent.setType("image/*");
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); //Uprawnienia do zdjęć
-            startActivityForResult(intent, 101);
-        });
+        //Więcej szczegółów
+        buttonMoreDetails.setOnClickListener(v -> {
+            ViewStub moreDetails = view.findViewById(R.id.moreDetailsStub);
+            View inflated = moreDetails.inflate();
+            buttonMoreDetails.setVisibility(View.GONE);
 
-        setupApplicationCategoryDropdown(view);
-        setupInputs(view);
+            editTextDescription = view.findViewById(R.id.textInputDescription);
+            buttonSelectImage = view.findViewById(R.id.buttonSelectImage);
+
+            buttonSelectImage.setOnClickListener(x -> {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.setType("image/*");
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); //Uprawnienia do zdjęć
+                startActivityForResult(intent, 101);
+            });
+
+            setupApplicationCategoryDropdown(view);
+            setupInputs(view);
+        });
     }
 
     private void searchByBarcode() {
@@ -82,10 +95,10 @@ public class AddProductFragment extends Fragment {
                     //Jeśli produkt w bazie
                     editTextName.setText(existing.name);
                     editTextProducer.setText(existing.producer);
-                    textBarcodeError.setVisibility(View.GONE);
+                    inputBarcodeLayout.setError(null);
                 } else {
                     //Brak produktu w bazie
-                    textBarcodeError.setVisibility(View.VISIBLE);
+                    inputBarcodeLayout.setError("Brak kodu w Twojej bazie");
                 }
             });
         }).start();
@@ -126,41 +139,43 @@ public class AddProductFragment extends Fragment {
     }
 
     private void setupApplicationCategoryDropdown(View view) {
-        MaterialAutoCompleteTextView dropdown = view.findViewById(R.id.dropdownApplication);
+        MaterialAutoCompleteTextView dropdown = view.findViewById(R.id.dropdownCategory);
 
         //Pobierz listę
         ApplicationCategoryDao dao = AppDatabase.getInstance(requireContext()).applicationCategoryDao();
 
-        dao.getAll().observe(getViewLifecycleOwner(), categories -> {
-            //Adapter do wyświetlania kategorii w dropdownie
-            ArrayAdapter<ApplicationCategory> adapter = new ArrayAdapter<>(
-                    requireContext(),
-                    android.R.layout.simple_dropdown_item_1line,
-                    categories
-            );
-            dropdown.setAdapter(adapter);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            dao.getAll().observe(getViewLifecycleOwner(), categories -> {
+                //Adapter do wyświetlania kategorii w dropdownie
+                ArrayAdapter<ApplicationCategory> adapter = new ArrayAdapter<>(
+                        requireContext(),
+                        android.R.layout.simple_dropdown_item_1line,
+                        categories
+                );
+                dropdown.setAdapter(adapter);
 
-            if (categories.isEmpty()) {
-                Toast.makeText(getContext(), "Brak dostępnych kategorii. Dodaj nową", Toast.LENGTH_SHORT).show();
-            }
-
-            dropdown.setOnItemClickListener((parent, v, position, id) -> {
-                ApplicationCategory selected = adapter.getItem(position);
-                if (selected != null) {
-                    selectedApplicationCategoryId = selected.id; //Zapis wybranej kategorii
+                if (categories.isEmpty()) {
+                    Toast.makeText(getContext(), "Brak dostępnych kategorii. Dodaj nową", Toast.LENGTH_SHORT).show();
                 }
+
+                dropdown.setOnItemClickListener((parent, v, position, id) -> {
+                    ApplicationCategory selected = adapter.getItem(position);
+                    if (selected != null) {
+                        selectedApplicationCategoryId = selected.id; //Zapis wybranej kategorii
+                    }
+                });
+                dropdown.setOnClickListener(v -> dropdown.showDropDown());
+                dropdown.setOnFocusChangeListener((v, hasFocus) -> {
+                    if (hasFocus) dropdown.showDropDown();
+                });
             });
-            dropdown.setOnClickListener(v -> dropdown.showDropDown());
-            dropdown.setOnFocusChangeListener((v, hasFocus) -> {
-                if (hasFocus) dropdown.showDropDown();
-            });
-        });
+        }, 250);
     }
 
     private void setupInputs(View view) {
-        TextView textAddApplication = view.findViewById(R.id.textAddApplicationCategory);
+        Button addCategory = view.findViewById(R.id.addCategory);
 
-        textAddApplication.setOnClickListener(v -> {
+        addCategory.setOnClickListener(v -> {
             AddCategoryBottomSheet bottomSheet = new AddCategoryBottomSheet();
             bottomSheet.setOnCategoryAddedListener(() -> {});
             bottomSheet.show(getParentFragmentManager(), "AddApplicationBottomSheet");
