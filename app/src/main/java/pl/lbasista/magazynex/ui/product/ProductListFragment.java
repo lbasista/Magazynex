@@ -16,6 +16,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.util.Comparator;
 import java.util.List;
 
@@ -31,7 +33,7 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
     private Button buttonSearch;
     private TextView textViewEmpty;
     private ProductAdapter productAdapter;
-    private TextView buttonSort;
+    private FloatingActionButton buttonSort;
     private List<Product> currentList; //Aktualnie wyświetlana lista
 
     @Nullable
@@ -47,11 +49,22 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
         //Pionowa lista
         recyclerViewProducts.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        editTextSearch = view.findViewById(R.id.editTextProductSearch);
-        buttonSearch = view.findViewById(R.id.buttonProductSearch);
+        editTextSearch = view.findViewById(R.id.textInputSearch);
+        buttonSearch = view.findViewById(R.id.searchProduct);
         textViewEmpty = view.findViewById(R.id.textViewEmpty);
+
+        //Sortowanie
         buttonSort = view.findViewById(R.id.buttonSort);
-        buttonSort.setVisibility(View.VISIBLE);
+        view.post(() -> { //Pozycja przycisku nad menu
+            View menuBar = requireActivity().findViewById(R.id.bottom_navigation);
+            if (menuBar != null) {
+                int menuHeight = menuBar.getHeight();
+                int extraSpacing = (int) getResources().getDisplayMetrics().density * 16;
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) buttonSort.getLayoutParams();
+                lp.bottomMargin = menuHeight + extraSpacing;
+                buttonSort.setLayoutParams(lp);
+            }
+        });
         buttonSort.setOnClickListener(v -> new SortDialogFragment().show(getChildFragmentManager(), "SortDialog"));
 
         ProductViewModel viewModel = new ViewModelProvider(this).get(ProductViewModel.class);

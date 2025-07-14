@@ -13,6 +13,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.util.Comparator;
 import java.util.List;
 
@@ -22,7 +24,7 @@ import pl.lbasista.magazynex.data.Product;
 public class FavouriteFragment extends Fragment implements SortDialogFragment.SortDialogListener {
     private RecyclerView recyclerViewProducts;
     ProductAdapter productAdapter;
-    private TextView buttonSort;
+    private FloatingActionButton buttonSort;
     private List<Product> favouriteList;
 
     @Nullable
@@ -39,6 +41,16 @@ public class FavouriteFragment extends Fragment implements SortDialogFragment.So
         recyclerViewProducts.setLayoutManager(new LinearLayoutManager(requireContext()));
         //Sortowanie
         buttonSort = view.findViewById(R.id.buttonSort);
+        view.post(() -> { //Pozycja przycisku nad menu
+            View menuBar = requireActivity().findViewById(R.id.bottom_navigation);
+            if (menuBar != null) {
+                int menuHeight = menuBar.getHeight();
+                int extraSpacing = (int) getResources().getDisplayMetrics().density * 16;
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) buttonSort.getLayoutParams();
+                lp.bottomMargin = menuHeight + extraSpacing;
+                buttonSort.setLayoutParams(lp);
+            }
+        });
         buttonSort.setOnClickListener(v -> new SortDialogFragment().show(getChildFragmentManager(), "SortDialog"));
 
 

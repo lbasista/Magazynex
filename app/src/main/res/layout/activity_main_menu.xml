@@ -9,8 +9,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/main_content"
-        android:layout_above="@+id/menu_bar"/>
+        android:id="@+id/main_content"/>
 
     <!--Menu-->
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -23,114 +22,4 @@
         android:layout_marginRight="12dp"
         android:background="@drawable/rounded_menu"
         app:menu="@menu/bottom_nav_menu"/>
-
-<!--    <LinearLayout-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:id="@+id/menu_bar"-->
-<!--        android:layout_alignParentBottom="true"-->
-<!--        android:orientation="horizontal"-->
-<!--        android:background="@color/colorPrimary">-->
-
-<!--        &lt;!&ndash;Dodaj produkt&ndash;&gt;-->
-<!--        <LinearLayout-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="64dp"-->
-<!--            android:layout_weight="1"-->
-<!--            android:id="@+id/menuAdd"-->
-<!--            android:orientation="vertical"-->
-<!--            android:gravity="center"-->
-<!--            android:clickable="true"-->
-<!--            android:padding="4dp"-->
-<!--            android:background="@drawable/bottom_menu_item">-->
-
-<!--            <TextView-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="➕"-->
-<!--                android:textSize="26sp"/>-->
-<!--            <TextView-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="Dodaj"-->
-<!--                android:textSize="14sp"-->
-<!--                android:textColor="@color/white"/>-->
-<!--        </LinearLayout>-->
-
-<!--        &lt;!&ndash;Lista produktów&ndash;&gt;-->
-<!--        <LinearLayout-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="64dp"-->
-<!--            android:layout_weight="1"-->
-<!--            android:id="@+id/menuProducts"-->
-<!--            android:orientation="vertical"-->
-<!--            android:gravity="center"-->
-<!--            android:clickable="true"-->
-<!--            android:padding="4dp"-->
-<!--            android:background="@drawable/bottom_menu_item">-->
-
-<!--            &lt;!&ndash;Emoji&ndash;&gt;-->
-<!--            <TextView-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="📋"-->
-<!--                android:textSize="26sp"/>-->
-<!--            &lt;!&ndash;Opis&ndash;&gt;-->
-<!--            <TextView-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="Produkty"-->
-<!--                android:textSize="14sp"-->
-<!--                android:textColor="@color/white"/>-->
-<!--        </LinearLayout>-->
-
-<!--        <LinearLayout-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="64dp"-->
-<!--            android:layout_weight="1"-->
-<!--            android:id="@+id/menuFav"-->
-<!--            android:orientation="vertical"-->
-<!--            android:gravity="center"-->
-<!--            android:padding="4dp"-->
-<!--            android:background="@drawable/bottom_menu_item">-->
-
-<!--            <TextView-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="⭐"-->
-<!--                android:textSize="26sp"/>-->
-<!--            <TextView-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="Ulubione"-->
-<!--                android:textSize="14sp"-->
-<!--                android:textColor="@color/white"/>-->
-<!--        </LinearLayout>-->
-
-
-<!--        &lt;!&ndash;Listy zamówień&ndash;&gt;-->
-<!--        <LinearLayout-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="64dp"-->
-<!--            android:layout_weight="1"-->
-<!--            android:id="@+id/menuOrders"-->
-<!--            android:orientation="vertical"-->
-<!--            android:gravity="center"-->
-<!--            android:clickable="true"-->
-<!--            android:padding="4dp"-->
-<!--            android:background="@drawable/bottom_menu_item">-->
-
-<!--            <TextView-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="🛒"-->
-<!--                android:textSize="26sp"/>-->
-<!--            <TextView-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="Zamówienia"-->
-<!--                android:textSize="14sp"-->
-<!--                android:textColor="@color/white"/>-->
-<!--        </LinearLayout>-->
-<!--    </LinearLayout>-->
 </RelativeLayout>

@@ -5,34 +5,29 @@
     android:layout_height="match_parent"
     android:padding="10dp">
 
-    <TextView
-        android:id="@+id/textTitle"
-        android:layout_width="0dp"
+    <com.google.android.material.textview.MaterialTextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Ulubione"
-        android:textSize="22sp"
-        android:padding="8dp"
-        android:textColor="@color/colorPrimary"
+        android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+        android:textColor="?attr/colorPrimary"
         android:textStyle="bold"
+        android:padding="8dp"
+        android:layout_marginBottom="24dp"
+        android:id="@+id/textTitle"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"/>
 
-    <TextView
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/buttonSort"
-        android:text="Sortowanie ↕️"
-        android:textColor="@color/gray"
-        android:clickable="true"
-        android:focusable="true"
-        android:textSize="16sp"
-        android:padding="8dp"
-        android:layout_marginEnd="8dp"
+        android:contentDescription="Sortowanie"
+        app:srcCompat="@drawable/ic_sort"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/textTitle"
-        app:layout_constraintBottom_toBottomOf="@id/textTitle"
-        android:gravity="center_vertical"/>
+        android:layout_marginRight="2dp"
+        android:elevation="0dp"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewProducts"

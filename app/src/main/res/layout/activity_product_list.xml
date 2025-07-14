@@ -5,61 +5,61 @@
     android:layout_height="match_parent"
     android:padding="10dp">
 
-    <TextView
-        android:id="@+id/textTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Lista Produktów"
-        android:textSize="22sp"
-        android:padding="8dp"
-        android:textColor="@color/colorPrimary"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/buttonSort"
-        android:text="Sortowanie ↕️"
-        android:textColor="@color/gray"
-        android:clickable="true"
-        android:focusable="true"
-        android:textSize="16sp"
+        android:text="Lista produktów"
+        android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+        android:textColor="?attr/colorPrimary"
+        android:textStyle="bold"
         android:padding="8dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/textTitle"
-        app:layout_constraintBottom_toBottomOf="@id/textTitle"
-        android:gravity="center_vertical"/>
+        android:layout_marginBottom="24dp"
+        android:id="@+id/textTitle"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
 
     <LinearLayout
-        android:id="@+id/searchRow"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/textTitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:padding="8dp">
+        android:id="@+id/searchRow"
+        app:layout_constraintTop_toBottomOf="@id/textTitle">
 
-
-        <EditText
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:id="@+id/editTextProductSearch"
-            android:hint="Szukaj..."
-            android:inputType="text"/>
+            android:layout_height="wrap_content"
+            android:hint="Wyszukaj produkt">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/textInputSearch"/>
+        </com.google.android.material.textfield.TextInputLayout>
 
         <Button
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/buttonProductSearch"
-            android:text="🔎"
-            android:minWidth="0dp"/>
+            android:layout_height="match_parent"
+            android:id="@+id/searchProduct"
+            android:minWidth="0dp"
+            app:iconPadding="0dp"
+            app:icon="@drawable/ic_search"
+            app:iconGravity="textStart"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            app:iconTint="?attr/colorSecondary"
+            android:layout_marginStart="8dp"/>
     </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/buttonSort"
+        android:contentDescription="Sortowanie"
+        app:srcCompat="@drawable/ic_sort"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginRight="2dp"
+        android:elevation="0dp"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -86,5 +86,6 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/searchRow"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintVertical_bias="1.0"
+        android:layout_marginTop="14dp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
