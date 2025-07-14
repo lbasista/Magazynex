@@ -63,6 +63,5 @@
         app:icon="@drawable/ic_camera"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:textColor="?attr/colorSecondary"
-        app:iconTint="?attr/colorSecondary"
-        android:layout_marginBottom="14dp"/>
+        app:iconTint="?attr/colorSecondary"/>
 </LinearLayout>

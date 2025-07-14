@@ -187,7 +187,7 @@ public class AddProductFragment extends Fragment {
         String productName = editTextName.getText().toString().trim();
         String producer = editTextProducer.getText().toString().trim();
         String quantityText = editTextQuantity.getText().toString().trim();
-        String description = editTextDescription.getText().toString().trim();
+        String description = (editTextDescription != null) ? editTextDescription.getText().toString().trim() : "";
 
         String barcode = barcodeInput.isEmpty() ? null : barcodeInput;
 
