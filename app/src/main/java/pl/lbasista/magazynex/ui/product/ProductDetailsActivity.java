@@ -12,6 +12,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.appbar.MaterialToolbar;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,13 +29,15 @@ import pl.lbasista.magazynex.data.Product;
 import pl.lbasista.magazynex.data.ProductDao;
 
 public class ProductDetailsActivity extends AppCompatActivity {
-    private TextView textProductName, textProducer, textBarcode, textQuantity, textCategory, textDescription, textAddToOrder, buttonDelete, textOrderLists;
+    private TextView textProductName, textProducer, textBarcode, textQuantity, textCategory, textDescription, textOrderLists;
     private ImageView imageViewProduct;
     private ProductDao productDao;
     private OrderDao orderDao;
     private OrderProductDao orderProductDao;
     private ApplicationCategoryDao applicationCategoryDao;
+    private MaterialToolbar toolbar;
     private int currentProductId = -1;
+    private String name, producer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,51 +57,108 @@ public class ProductDetailsActivity extends AppCompatActivity {
         textQuantity = findViewById(R.id.textQuantity);
         textDescription = findViewById(R.id.textDescription);
         imageViewProduct = findViewById(R.id.imageProduct);
-        textAddToOrder = findViewById(R.id.tvAddToOrder);
-        buttonDelete = findViewById(R.id.buttonDeleteProduct);
         textCategory = findViewById(R.id.textCategory);
         textOrderLists = findViewById(R.id.textOrderLists);
+        toolbar = findViewById(R.id.appBarProductDetails);
+        name = getIntent().getStringExtra("name");
+        producer = getIntent().getStringExtra("producer");
 
         //Powrót do listy produktów
-        findViewById(R.id.tvBack).setOnClickListener(v -> finish());
+        toolbar.setNavigationOnClickListener(v -> finish());
 
-        //Edycja
-        findViewById(R.id.tvEdit).setOnClickListener(v -> {
-            //Dane z Intent
-            Bundle args = new Bundle();
-            args.putString("barcode", getIntent().getStringExtra("barcode"));
-            args.putString("name", getIntent().getStringExtra("name"));
-            args.putString("producer", getIntent().getStringExtra("producer"));
-            args.putInt("quantity", getIntent().getIntExtra("quantity", 0));
-            args.putString("description", getIntent().getStringExtra("description"));
-            args.putString("imageUri", getIntent().getStringExtra("imageUri"));
+        toolbar.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.prodEdit) { //Edycja
+                //Dane z Intent
+                Bundle args = new Bundle();
+                args.putString("barcode", getIntent().getStringExtra("barcode"));
+                args.putString("name", getIntent().getStringExtra("name"));
+                args.putString("producer", getIntent().getStringExtra("producer"));
+                args.putInt("quantity", getIntent().getIntExtra("quantity", 0));
+                args.putString("description", getIntent().getStringExtra("description"));
+                args.putString("imageUri", getIntent().getStringExtra("imageUri"));
 
-            EditProductBottomSheet sheet = new EditProductBottomSheet();
-            sheet.setArguments(args);
+                EditProductBottomSheet sheet = new EditProductBottomSheet();
+                sheet.setArguments(args);
 
-            //Aktualizowanie obiektu po edycji
-            sheet.setOnProductUpdatedListener(updatedProduct -> {
-                //Nowe wartości
-                textProductName.setText(updatedProduct.name);
-                textProducer.setText(updatedProduct.producer);
-                textBarcode.setText(updatedProduct.barcode);
-                textQuantity.setText(String.valueOf(updatedProduct.quantity));
-                textDescription.setText(updatedProduct.description);
-                String newImageUri = updatedProduct.imageUri;
-                if (newImageUri != null && !newImageUri.isEmpty()) {
-                    imageViewProduct.setImageURI(Uri.parse(newImageUri));
-                    imageViewProduct.setVisibility(View.VISIBLE);
-                } else {
-                    imageViewProduct.setVisibility(View.GONE);
-                }
-            });
-            sheet.show(getSupportFragmentManager(), "editProduct");
+                //Aktualizowanie obiektu po edycji
+                sheet.setOnProductUpdatedListener(updatedProduct -> {
+                    //Nowe wartości
+                    textProductName.setText(updatedProduct.name);
+                    textProducer.setText(updatedProduct.producer);
+                    textBarcode.setText(updatedProduct.barcode);
+                    textQuantity.setText(String.valueOf(updatedProduct.quantity));
+                    textDescription.setText(updatedProduct.description);
+                    String newImageUri = updatedProduct.imageUri;
+                    if (newImageUri != null && !newImageUri.isEmpty()) {
+                        imageViewProduct.setImageURI(Uri.parse(newImageUri));
+                        imageViewProduct.setVisibility(View.VISIBLE);
+                    } else {
+                        imageViewProduct.setVisibility(View.GONE);
+                    }
+                });
+                sheet.show(getSupportFragmentManager(), "editProduct");
+                return true;
+            } else if (id == R.id.prodAddList) { //Dodaj do listy
+                if (currentProductId == -1) return false; //Brak wczytanego produktu
+
+                new Thread(() -> {
+                    List<Order> orders = orderDao.getAllOrders();
+                    String[] names = new String[orders.size()];
+                    for (int i = 0; i < orders.size(); i++) {
+                        names[i] = orders.get(i).name;
+                    }
+
+                    runOnUiThread(() -> {
+                        new AlertDialog.Builder(this)
+                                .setTitle("Dodawanie do listy")
+                                .setItems(names, (dialog, which) -> {
+                                    Order selectedOrder = orders.get(which);
+                                    new Thread(() -> {
+                                        long result = orderProductDao.insert(new OrderProduct(selectedOrder.id, currentProductId));
+
+                                        if (result != -1) orderDao.addProductToOrder(selectedOrder.id);
+
+                                        runOnUiThread(() -> {
+                                            if (result == -1) {
+                                                Toast.makeText(this, "Produkt już jest na tej liście", Toast.LENGTH_SHORT).show();
+                                            } else {
+                                                Toast.makeText(this, "Dodano do listy " + selectedOrder.name, Toast.LENGTH_SHORT).show();
+                                                displayOrderLists(currentProductId);
+                                            }
+                                        });
+                                    }).start();
+                                })
+                                .setNegativeButton("Anuluj", null)
+                                .show();
+                    });
+                }).start();
+                return true;
+            } else if (id == R.id.prodRemove) { //Usuń
+                new AlertDialog.Builder(this)
+                        .setTitle("Usuwanie produktu")
+                        .setMessage("Czy chcesz usunąć ten produkt z bazy?")
+                        .setPositiveButton("Tak", (dialog, which) -> {
+
+                            new Thread(() -> {
+                                Product toDelete = productDao.getByNameAndProducer(name, producer);
+                                if (toDelete != null) {
+                                    productDao.delete(toDelete);
+
+                                    runOnUiThread(() -> {
+                                        Toast.makeText(this, "Produkt usunięty", Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    });
+                                }
+                            }).start();
+                        })
+                        .setNegativeButton("Anuluj", null)
+                        .show();
+                return true;
+            }
+            return false;
         });
         loadFromIntent();
-
-        //Zmienne do operacji na produktach
-        String name = getIntent().getStringExtra("name");
-        String producer = getIntent().getStringExtra("producer");
 
         //Kategoria i lista zamówień
         new Thread(() -> {
@@ -111,72 +172,11 @@ public class ProductDetailsActivity extends AppCompatActivity {
             }
         }).start();
 
-        //Usuwanie produktu
-        buttonDelete.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
-                    .setTitle("Usuwanie produktu")
-                    .setMessage("Czy chcesz usunąć ten produkt z bazy?")
-                    .setPositiveButton("Tak", (dialog, which) -> {
-//                        String name = getIntent().getStringExtra("name");
-//                        String producer = getIntent().getStringExtra("producer");
-
-                        new Thread(() -> {
-                            Product toDelete = productDao.getByNameAndProducer(name, producer);
-                            if (toDelete != null) {
-                                productDao.delete(toDelete);
-
-                                runOnUiThread(() -> {
-                                    Toast.makeText(this, "Produkt usunięty", Toast.LENGTH_SHORT).show();
-                                    finish();
-                                });
-                            }
-                        }).start();
-                    })
-                    .setNegativeButton("Anuluj", null)
-                    .show();
-        });
-
         //Dadawanie do listy
         new Thread(() -> {
             Product product = productDao.getByNameAndProducer(name, producer);
             if (product != null) currentProductId = product.id;
         }).start();
-
-        textAddToOrder.setOnClickListener(v -> {
-            if (currentProductId == -1) return; //Brak wczytanego produktu
-
-            new Thread(() -> {
-                List<Order> orders = orderDao.getAllOrders();
-                String[] names = new String[orders.size()];
-                for (int i = 0; i < orders.size(); i++) {
-                    names[i] = orders.get(i).name;
-                }
-
-                runOnUiThread(() -> {
-                    new AlertDialog.Builder(this)
-                            .setTitle("Dodawanie do listy")
-                            .setItems(names, (dialog, which) -> {
-                                Order selectedOrder = orders.get(which);
-                                new Thread(() -> {
-                                    long result = orderProductDao.insert(new OrderProduct(selectedOrder.id, currentProductId));
-
-                                    if (result != -1) orderDao.addProductToOrder(selectedOrder.id);
-
-                                    runOnUiThread(() -> {
-                                        if (result == -1) {
-                                            Toast.makeText(this, "Produkt już jest na tej liście", Toast.LENGTH_SHORT).show();
-                                        } else {
-                                            Toast.makeText(this, "Dodano do listy " + selectedOrder.name, Toast.LENGTH_SHORT).show();
-                                            displayOrderLists(currentProductId);
-                                        }
-                                    });
-                                }).start();
-                            })
-                            .setNegativeButton("Anuluj", null)
-                            .show();
-                });
-            }).start();
-        });
     }
 
     private void displayOrderLists(int productId) {
