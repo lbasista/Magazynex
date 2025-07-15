@@ -11,6 +11,11 @@
         android:icon="@drawable/ic_list_add"
         app:showAsAction="always"/>
 
+    <item android:id="@+id/prodFav"
+        android:title="Dodaj/Usuń z ulubionych"
+        android:icon="@drawable/ic_star_empty"
+        app:showAsAction="always"/>
+
     <item android:id="@+id/prodRemove"
         android:title="Usuń produkt"
         android:icon="@drawable/ic_bin"

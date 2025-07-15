@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
@@ -37,6 +38,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
     private ApplicationCategoryDao applicationCategoryDao;
     private MaterialToolbar toolbar;
     private int currentProductId = -1;
+    private  Product currentProduct;
     private String name, producer;
 
     @Override
@@ -155,12 +157,28 @@ public class ProductDetailsActivity extends AppCompatActivity {
                         .setNegativeButton("Anuluj", null)
                         .show();
                 return true;
+            } else if (id == R.id.prodFav) { //Ulubione
+                new Thread(() -> {
+                    Product p = productDao.getByNameAndProducer(name, producer);
+                    if (p != null){
+                        p.favourite = !p.favourite; //Zmiana stanu polubienia
+                        productDao.update(p); //Zapis do bazy
+
+                        runOnUiThread(() -> {
+                            int iconRes = p.favourite ? R.drawable.ic_star : R.drawable.ic_star_empty;
+                            toolbar.getMenu().findItem(R.id.prodFav).setIcon(iconRes);
+                            String msg = p.favourite ? "Dodano do ulubionych" : "Usunięto z ulubionych";
+                            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }).start();
+                return true;
             }
             return false;
         });
         loadFromIntent();
 
-        //Kategoria i lista zamówień
+        //Kategoria i lista zamówień + gwiazdka
         new Thread(() -> {
             Product p = productDao.getByNameAndProducer(name, producer);
             if (p != null) {
@@ -168,6 +186,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     displayCategory(p.applicationCategoryId);
                     displayOrderLists(currentProductId);
+                    toolbar.getMenu().findItem(R.id.prodFav).setIcon(p.favourite ? R.drawable.ic_star : R.drawable.ic_star_empty);
                 });
             }
         }).start();
