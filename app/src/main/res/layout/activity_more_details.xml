@@ -24,7 +24,9 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/dropdownCategory"
                 android:inputType="none"
-                android:paddingStart="48dp"/>
+                android:paddingStart="48dp"
+                android:paddingVertical="14dp"
+                android:paddingHorizontal="16dp"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button

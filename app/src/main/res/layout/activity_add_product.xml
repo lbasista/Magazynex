@@ -105,7 +105,7 @@
             style="@style/Widget.Material3.Button.TextButton"
             android:text="Więcej szczegółów"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="14dp"/>
+            android:layout_marginBottom="8dp"/>
 
         <ViewStub
             android:layout_width="match_parent"
@@ -113,10 +113,37 @@
             android:id="@+id/moreDetailsStub"
             android:layout="@layout/activity_more_details"/>
 
-        <Button
-            android:id="@+id/buttonSaveProduct"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Zapisz produkt"/>
+            android:orientation="horizontal"
+            android:layout_weight="5"
+            android:layout_marginTop="10dp">
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="match_parent"
+                android:id="@+id/buttonCancelInputs"
+                android:minWidth="0dp"
+                app:iconPadding="5dp"
+                app:icon="@drawable/ic_cancel"
+                app:iconTint="@color/design_default_color_error"
+                app:iconGravity="textStart"
+                android:text="Anuluj"
+                android:textColor="@color/design_default_color_error"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_marginStart="6dp"/>
+
+            <Button
+                android:id="@+id/buttonSaveProduct"
+                android:layout_width="0dp"
+                android:layout_weight="4"
+                android:layout_height="wrap_content"
+                android:text="Zapisz produkt"
+                style="@style/Widget.Material3.Button.IconButton.Filled"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="6dp"/>
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

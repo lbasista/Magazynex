@@ -38,7 +38,7 @@ import pl.lbasista.magazynex.ui.product.AddCategoryBottomSheet;
 public class AddProductFragment extends Fragment {
     private EditText editTextBarcode, editTextName, editTextProducer, editTextQuantity, editTextDescription;
     TextInputLayout inputBarcodeLayout;
-    private Button buttonBarcodeSearch, buttonSelectImage, buttonSave, buttonMoreDetails;
+    private Button buttonBarcodeSearch, buttonSelectImage, buttonSave, buttonCancel, buttonMoreDetails;
     private String selectedImageUri = null;
     private int selectedApplicationCategoryId = 0; //0 = brak kategorii
 
@@ -57,8 +57,10 @@ public class AddProductFragment extends Fragment {
         editTextQuantity = view.findViewById(R.id.textInputQuantity);
         buttonMoreDetails = view.findViewById(R.id.moreDetailsButton);
         buttonSave = view.findViewById(R.id.buttonSaveProduct);
+        buttonCancel = view.findViewById(R.id.buttonCancelInputs);
 
         buttonBarcodeSearch.setOnClickListener(v -> searchByBarcode());
+        buttonCancel.setOnClickListener(v -> clearInputs());
         buttonSave.setOnClickListener(v -> saveProduct());
 
         //Więcej szczegółów
@@ -237,8 +239,22 @@ public class AddProductFragment extends Fragment {
 
             requireActivity().runOnUiThread(() -> {
                 Toast.makeText(getContext(), "Produkt dodany", Toast.LENGTH_SHORT).show();
-                requireActivity().getSupportFragmentManager().popBackStack();
+                //requireActivity().getSupportFragmentManager().popBackStack();
+                clearInputs();
             });
         }).start();
+    }
+
+    private void clearInputs() {
+        editTextBarcode.setText("");
+        editTextName.setText("");
+        editTextProducer.setText("");
+        editTextQuantity.setText("");
+        if (editTextDescription != null) editTextDescription.setText("");
+        selectedImageUri = null;
+        if (buttonSelectImage != null) buttonSelectImage.setText("Wybierz zdjęcie");
+        MaterialAutoCompleteTextView dropdown = getView().findViewById(R.id.dropdownCategory);
+        if (dropdown != null) dropdown.setText("");
+        selectedApplicationCategoryId = 0;
     }
 }

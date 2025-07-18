@@ -15,9 +15,12 @@ public interface OrderProductDao {
     @Query("SELECT * FROM order_product WHERE productId = :productId")
     List<OrderProduct> getByProductId(int productId);
 
-    @Query("SELECT p.* FROM Product p INNER JOIN order_product op ON p.id = op.productId WHERE op.orderId = :orderId")
-    List<Product> getProductsForOrder(int orderId);
+    @Query("SELECT * FROM order_product Where orderId = :orderId")
+    List<OrderProduct> getByOrderId(int orderId);
 
     @Query("DELETE FROM order_product WHERE orderId = :orderId AND productId = :productId")
     void delete(int orderId, int productId);
+
+    @Query("DELETE FROM order_product WHERE orderId = :orderId")
+    void deleteAllByOrderId(int orderId);
 }

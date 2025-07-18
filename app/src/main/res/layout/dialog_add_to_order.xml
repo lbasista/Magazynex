@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Wybierz produkt*"
+        android:id="@+id/dropdownProductListLayout">
+
+        <AutoCompleteTextView
+            android:id="@+id/dropdownProductList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:paddingVertical="16dp"
+            android:paddingHorizontal="16dp"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Wybierz listę*"
+        android:layout_marginTop="10dp"
+        android:id="@+id/dropdownOrderListLayout">
+
+        <AutoCompleteTextView
+            android:id="@+id/dropdownOrderList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:paddingVertical="16dp"
+            android:paddingHorizontal="16dp"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Ilość*"
+        android:layout_marginTop="10dp"
+        android:id="@+id/inputQuantityLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:id="@+id/inputQuantity"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp">
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/buttonCancel"
+            android:text="Anuluj"
+            android:textColor="@color/design_default_color_error"
+            android:textStyle="bold"
+            android:layout_marginRight="4dp"
+            style="@style/Widget.Material3.Button.TonalButton"/>
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/buttonSave"
+            android:text="Zapisz"
+            android:textStyle="bold"
+            android:layout_marginLeft="4dp"
+            style="@style/Widget.Material3.Button.IconButton.Filled"/>
+    </LinearLayout>
+</LinearLayout>

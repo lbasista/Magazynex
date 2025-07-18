@@ -25,6 +25,6 @@ public interface OrderDao {
     @Delete
     void delete(Order order);
 
-    @Query("UPDATE orders SET quantity = quantity + 1 WHERE id = :orderId")
-    void addProductToOrder(int orderId);
+    @Query("UPDATE orders SET quantity = quantity + :count WHERE id = :orderId")
+    void addProductToOrder(int orderId, int count);
 }

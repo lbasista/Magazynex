@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey;
 public class Order {
     @PrimaryKey(autoGenerate = true)
     public int id;
-    public final String name;
+    public String name;
     public int quantity;
 
     public Order(String name, int quantity) {

@@ -39,7 +39,8 @@
                 android:text="Anuluj"
                 android:textColor="@color/red"
                 android:textStyle="bold"
-                android:layout_marginRight="4dp"/>
+                android:layout_marginRight="4dp"
+                style="@style/Widget.Material3.Button.TonalButton"/>
 
             <Button
                 android:layout_width="0dp"
@@ -47,9 +48,9 @@
                 android:layout_weight="1"
                 android:id="@+id/buttonSaveOrder"
                 android:text="Zapisz"
-                android:textColor="@color/green"
                 android:textStyle="bold"
-                android:layout_marginLeft="4dp"/>
+                android:layout_marginLeft="4dp"
+                style="@style/Widget.Material3.Button.IconButton.Filled"/>
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

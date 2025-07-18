@@ -16,6 +16,9 @@ public interface ProductDao {
     @Query("SELECT * FROM Product WHERE name = :name AND producer = :producer LIMIT 1")
     Product getByNameAndProducer(String name, String producer); //Sprawdź czy jest w bazie
 
+    @Query("SELECT * FROM Product WHERE id = :id LIMIT 1")
+    Product getById(int id);
+
     @Update
     void update(Product product);
 

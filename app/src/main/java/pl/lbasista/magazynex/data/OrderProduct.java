@@ -2,6 +2,7 @@ package pl.lbasista.magazynex.data;
 
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
+import androidx.room.Ignore;
 import androidx.room.Index;
 
 @Entity(
@@ -20,9 +21,17 @@ import androidx.room.Index;
 public class OrderProduct {
     public final int orderId;
     public final int productId;
+    public int count;
 
+    @Ignore
     public OrderProduct(int orderId, int productId) {
         this.orderId = orderId;
         this.productId = productId;
+    }
+
+    public OrderProduct(int orderId, int productId, int count) {
+        this.orderId = orderId;
+        this.productId = productId;
+        this.count = count;
     }
 }

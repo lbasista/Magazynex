@@ -2,51 +2,34 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/orderToolbarLayout">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:id="@+id/appBarOrderDetails"
+            android:background="?attr/colorPrimary"
+            android:theme="@style/Widget.Material3.Toolbar"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:menu="@menu/order_details_menu"/>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/scrollContent">
+        android:id="@+id/scrollContent"
+        android:layout_below="@id/orderToolbarLayout">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="⬅️ Powrót"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="left"
-                    android:id="@+id/tvBack"
-                    android:textSize="16sp"
-                    android:textColor="@color/gray"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"/>
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Edycja ✏️"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="right"
-                    android:id="@+id/tvEdit"
-                    android:textSize="16sp"
-                    android:textColor="@color/gray"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"/>
-            </LinearLayout>
+            android:orientation="vertical"
+            android:padding="16dp">
 
             <TextView
                 android:layout_width="match_parent"
@@ -87,11 +70,4 @@
                 android:id="@+id/llProducts"/>
         </LinearLayout>
     </ScrollView>
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Dodaj produkt"
-        android:layout_alignParentBottom="true"
-        android:id="@+id/buttonAdd"/>
 </RelativeLayout>

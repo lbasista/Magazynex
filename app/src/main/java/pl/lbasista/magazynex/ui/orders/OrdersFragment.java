@@ -14,6 +14,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +24,7 @@ import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.Order;
 
 public class OrdersFragment extends Fragment {
-    private Button buttonAddOrder;
+    private FloatingActionButton buttonAddOrder;
     private RecyclerView recyclerView;
     private TextView textEmpty;
     private OrderAdapter adapter;
@@ -39,6 +41,17 @@ public class OrdersFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerViewOrders);
         textEmpty = view.findViewById(R.id.textViewEmptyOrder);
         buttonAddOrder = view.findViewById(R.id.buttonAddOrder);
+
+        view.post(() -> { //Pozycja przycisku nad menu
+            View menuBar = requireActivity().findViewById(R.id.bottom_navigation);
+            if (menuBar != null) {
+                int menuHeight = menuBar.getHeight();
+                int extraSpacing = (int) getResources().getDisplayMetrics().density * 16;
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) buttonAddOrder.getLayoutParams();
+                lp.bottomMargin = menuHeight + extraSpacing;
+                buttonAddOrder.setLayoutParams(lp);
+            }
+        });
 
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new OrderAdapter(orderLists, order -> Toast.makeText(requireContext(), "Kliknąłeś: " + order.getName(), Toast.LENGTH_SHORT).show());
