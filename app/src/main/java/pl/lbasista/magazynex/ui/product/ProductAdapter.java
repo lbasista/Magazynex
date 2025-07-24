@@ -24,6 +24,8 @@ import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.ApplicationCategory;
 import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Product;
+import pl.lbasista.magazynex.ui.user.RoleChecker;
+import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
 
@@ -94,6 +96,8 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         } else {
             holder.imageViewProduct.setVisibility(View.GONE);
         }
+
+        if (RoleChecker.isViewer(new SessionManager(holder.itemView.getContext()))) holder.textFavourite.setVisibility(View.GONE);
 
         //Zmiana koloru gwiazdki
         int starColorRes = product.favourite ? R.color.gold : R.color.light_gray;

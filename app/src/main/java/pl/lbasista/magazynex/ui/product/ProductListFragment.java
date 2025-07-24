@@ -26,6 +26,8 @@ import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.ApplicationCategory;
 import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Product;
+import pl.lbasista.magazynex.ui.user.RoleChecker;
+import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class ProductListFragment extends Fragment implements SortDialogFragment.SortDialogListener {
     private RecyclerView recyclerViewProducts;

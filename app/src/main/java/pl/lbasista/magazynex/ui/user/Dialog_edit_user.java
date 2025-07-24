@@ -8,10 +8,12 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import com.google.android.material.textfield.TextInputEditText;
@@ -31,6 +33,9 @@ public class Dialog_edit_user extends DialogFragment {
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_user, null);
 
+        TextView title = view.findViewById(R.id.dialogTitleAdd);
+        title.setVisibility(View.GONE);
+
         TextInputEditText inputLogin = view.findViewById(R.id.inputNewLogin);
         TextInputEditText inputPassword = view.findViewById(R.id.inputNewPassword);
         TextInputEditText inputName = view.findViewById(R.id.inputNewName);
@@ -41,6 +46,7 @@ public class Dialog_edit_user extends DialogFragment {
         TextInputLayout layoutName = view.findViewById(R.id.inputNewNameLayout);
         TextInputLayout layoutSurname = view.findViewById(R.id.inputNewSurnameLayout);
         TextInputLayout layoutRole = view.findViewById(R.id.dropdownRoleLayout);
+        TextView roleInfo = view.findViewById(R.id.textRoleInformation);
         Button buttonSave = view.findViewById(R.id.buttonSaveUser);
         Button buttonCancel = view.findViewById(R.id.buttonCancelUser);
 
@@ -99,6 +105,16 @@ public class Dialog_edit_user extends DialogFragment {
                     dismiss();
                 });
             }).start();
+        });
+
+        roleInfo.setOnClickListener(v -> {
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Różnice między rolami")
+                    .setMessage("Administrator - pełny dostęp: może edytować, usuwać, zarządzać użytkownikami\n\n" +
+                            "Pracownik - może przeglądać oraz zarządzać produktami i listami\n\n" +
+                            "Przeglądający - tylko podgląd danych, bez możliwości edycji.")
+                    .setPositiveButton("OK", null)
+                    .show();
         });
 
         Dialog dialog = new Dialog(requireContext());

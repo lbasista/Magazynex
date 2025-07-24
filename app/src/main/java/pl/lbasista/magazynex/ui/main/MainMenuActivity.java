@@ -3,7 +3,10 @@ package pl.lbasista.magazynex.ui.main;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
+
+import android.util.Log;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -17,6 +20,7 @@ import pl.lbasista.magazynex.ui.product.ProductListFragment;
 import pl.lbasista.magazynex.ui.product.FavouriteFragment;
 import pl.lbasista.magazynex.ui.user.LoginActivity;
 import pl.lbasista.magazynex.ui.user.ProfileFragment;
+import pl.lbasista.magazynex.ui.user.RoleChecker;
 import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class MainMenuActivity extends AppCompatActivity {
@@ -25,6 +29,7 @@ public class MainMenuActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         SessionManager session = new SessionManager(this);
+        //Brak użytkownika w bazie
         if (session.getUserId() == -1) {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
@@ -42,6 +47,9 @@ public class MainMenuActivity extends AppCompatActivity {
         //Domyślna zakładka
         bottomNavigation.setSelectedItemId(R.id.nav_products);
         loadFragment(new ProductListFragment());
+
+        //Blokowanie okien
+        if (RoleChecker.isViewer(session)) bottomNavigation.getMenu().removeItem(R.id.nav_add);
 
         //Wybieranie okna
         bottomNavigation.setOnItemSelectedListener(item -> {

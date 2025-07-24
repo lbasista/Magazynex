@@ -33,6 +33,8 @@ import pl.lbasista.magazynex.data.OrderProduct;
 import pl.lbasista.magazynex.data.OrderProductDao;
 import pl.lbasista.magazynex.data.Product;
 import pl.lbasista.magazynex.data.ProductDao;
+import pl.lbasista.magazynex.ui.user.RoleChecker;
+import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class OrderDetailsActivity extends AppCompatActivity {
     private int currentOrderId;
@@ -63,6 +65,12 @@ public class OrderDetailsActivity extends AppCompatActivity {
         textEmptyProducts = findViewById(R.id.textEmptyProducts);
         llProducts = findViewById(R.id.llProducts);
         toolbar = findViewById(R.id.appBarOrderDetails);
+
+        if (RoleChecker.isViewer(new SessionManager(this))) {
+            toolbar.getMenu().findItem(R.id.orderEdit).setVisible(false);
+            toolbar.getMenu().findItem(R.id.orderAddProduct).setVisible(false);
+            toolbar.getMenu().findItem(R.id.orderRemove).setVisible(false);
+        }
 
         String orderName = getIntent().getStringExtra("orderName");
         tvName.setText(orderName);

@@ -1,9 +1,6 @@
 package pl.lbasista.magazynex.ui.user;
 
-import android.accounts.Account;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;

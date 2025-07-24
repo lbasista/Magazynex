@@ -2,7 +2,6 @@ package pl.lbasista.magazynex.ui.user;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -77,6 +76,7 @@ public class LoginActivity extends AppCompatActivity {
                     Intent intent = new Intent(this, MainMenuActivity.class);
                     SessionManager session = new SessionManager(this);
                     session.saveUserSession(user.id);
+                    session.saveUserRole(user.role);
                     startActivity(intent);
                     finish();
                 });

@@ -22,6 +22,8 @@ import java.util.List;
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.Order;
+import pl.lbasista.magazynex.ui.user.RoleChecker;
+import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class OrdersFragment extends Fragment {
     private FloatingActionButton buttonAddOrder;
@@ -41,6 +43,9 @@ public class OrdersFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerViewOrders);
         textEmpty = view.findViewById(R.id.textViewEmptyOrder);
         buttonAddOrder = view.findViewById(R.id.buttonAddOrder);
+
+        //Ukryj przycisk dla przeglądającego
+        if (RoleChecker.isViewer(new SessionManager(requireContext()))) buttonAddOrder.setVisibility(View.GONE);
 
         view.post(() -> { //Pozycja przycisku nad menu
             View menuBar = requireActivity().findViewById(R.id.bottom_navigation);

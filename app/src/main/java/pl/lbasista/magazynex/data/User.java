@@ -18,7 +18,7 @@ public class User {
     }
 
     //Role użytkowników
-    public static final String ROLE_ADMIN = "administrator";
-    public static final String ROLE_WORKER = "pracownik";
-    public static final String ROLE_VIEWER = "przeglądajacy";
+    public static final String ROLE_ADMIN = "Administrator";
+    public static final String ROLE_WORKER = "Pracownik";
+    public static final String ROLE_VIEWER = "Przeglądający";
 }

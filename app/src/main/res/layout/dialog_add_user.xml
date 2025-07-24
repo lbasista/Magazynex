@@ -7,10 +7,20 @@
     android:padding="16dp">
 
     <TextView
-        android:id="@+id/dialogTitle"
+        android:id="@+id/dialogTitleAdd"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Nowy użytkownik"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingBottom="15dp"/>
+
+    <TextView
+        android:id="@+id/dialogTitleEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Edycja użytkownika"
         android:textSize="20sp"
         android:textStyle="bold"
         android:gravity="center"
@@ -92,6 +102,17 @@
             android:id="@+id/dropdownRole"
             android:inputType="none"
             android:importantForAccessibility="yes"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textRoleInformation"
+            android:layout_marginTop="8dp"
+            android:text="Dowiedz się więcej o rolach"
+            android:textStyle="italic"
+            android:textColor="?attr/colorPrimary"
+            android:clickable="true"
+            android:focusable="true"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <LinearLayout

@@ -34,6 +34,8 @@ import pl.lbasista.magazynex.data.OrderProduct;
 import pl.lbasista.magazynex.data.OrderProductDao;
 import pl.lbasista.magazynex.data.Product;
 import pl.lbasista.magazynex.data.ProductDao;
+import pl.lbasista.magazynex.ui.user.RoleChecker;
+import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class ProductDetailsActivity extends AppCompatActivity {
     private TextView textProductName, textProducer, textBarcode, textQuantity, textCategory, textDescription, textOrderLists;
@@ -45,7 +47,6 @@ public class ProductDetailsActivity extends AppCompatActivity {
     private ApplicationCategoryDao applicationCategoryDao;
     private MaterialToolbar toolbar;
     private int currentProductId = -1;
-    private  Product currentProduct;
     private String name, producer;
 
     @Override
@@ -71,6 +72,13 @@ public class ProductDetailsActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.appBarProductDetails);
         name = getIntent().getStringExtra("name");
         producer = getIntent().getStringExtra("producer");
+
+        if (RoleChecker.isViewer(new SessionManager(this))) {
+            toolbar.getMenu().findItem(R.id.prodEdit).setVisible(false);
+            toolbar.getMenu().findItem(R.id.prodAddList).setVisible(false);
+            toolbar.getMenu().findItem(R.id.prodFav).setVisible(false);
+            toolbar.getMenu().findItem(R.id.prodRemove).setVisible(false);
+        }
 
         //Powrót do listy produktów
         toolbar.setNavigationOnClickListener(v -> finish());

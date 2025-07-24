@@ -34,6 +34,8 @@ public class ProfileFragment extends Fragment {
         buttonLogout = view.findViewById(R.id.buttonLogout);
         session = new SessionManager(requireContext());
 
+        if (!RoleChecker.isAdmin(session)) buttonUserOptions.setVisibility(View.GONE);
+
         getParentFragmentManager().setFragmentResultListener("update_profile", getViewLifecycleOwner(), (key, bundle) -> {
             loadUserData(session.getUserId());
         });
