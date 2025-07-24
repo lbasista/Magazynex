@@ -26,7 +26,8 @@
                 android:inputType="none"
                 android:paddingStart="48dp"
                 android:paddingVertical="14dp"
-                android:paddingHorizontal="16dp"/>
+                android:paddingHorizontal="16dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button

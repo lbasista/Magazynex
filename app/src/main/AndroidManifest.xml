@@ -22,6 +22,10 @@
         <activity android:name=".ui.product.ProductDetailsActivity"
             android:label="Szczegóły produktu"/>
         <activity android:name=".ui.orders.OrderDetailsActivity"
-            android:label="Szczegóły produktu"/>
+            android:label="Szczegóły listy"/>
+        <activity android:name=".ui.user.LoginActivity"
+            android:label="Ekran logowania"/>
+        <activity android:name=".ui.user.ManageAccountsActivity"
+            android:label="Zarządzanie użytkownikami"/>
     </application>
 </manifest>

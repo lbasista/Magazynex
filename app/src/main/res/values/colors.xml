@@ -11,4 +11,6 @@
     <color name="colorPrimary">#2196F3</color>
     <color name="colorPrimaryDark">#1976D2</color>
     <color name="dark_purple">#3F51B5</color>
+    <color name="yale_blue">#083D77</color>
+    <color name="flax_yellow">#F3DE8A</color>
 </resources>

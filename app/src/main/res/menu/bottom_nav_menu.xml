@@ -5,15 +5,19 @@
         android:icon="@drawable/ic_add"
         android:title="Dodaj"/>
     <item
-        android:id="@+id/nav_products"
-        android:icon="@drawable/ic_list"
-        android:title="Produkty"/>
-    <item
         android:id="@+id/nav_fav"
         android:icon="@drawable/ic_star_empty"
         android:title="Ulubione"/>
     <item
+        android:id="@+id/nav_products"
+        android:icon="@drawable/ic_list"
+        android:title="Produkty"/>
+    <item
         android:id="@+id/nav_orders"
         android:icon="@drawable/ic_cart"
-        android:title="Zamówienia"/>
+        android:title="Listy"/>
+    <item
+        android:id="@+id/nav_user"
+        android:icon="@drawable/ic_person"
+        android:title="Profil"/>
 </menu>

@@ -1,5 +1,6 @@
 package pl.lbasista.magazynex.ui.main;
 
+import android.content.Intent;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import android.widget.LinearLayout;
@@ -14,12 +15,23 @@ import pl.lbasista.magazynex.ui.orders.OrdersFragment;
 import pl.lbasista.magazynex.ui.addproduct.AddProductFragment;
 import pl.lbasista.magazynex.ui.product.ProductListFragment;
 import pl.lbasista.magazynex.ui.product.FavouriteFragment;
+import pl.lbasista.magazynex.ui.user.LoginActivity;
+import pl.lbasista.magazynex.ui.user.ProfileFragment;
+import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class MainMenuActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SessionManager session = new SessionManager(this);
+        if (session.getUserId() == -1) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         super.onCreate(savedInstanceState);
         //Wczytaj menu główne
         setContentView(R.layout.activity_main_menu);
@@ -45,6 +57,9 @@ public class MainMenuActivity extends AppCompatActivity {
                     return true;
                 case R.id.nav_orders:
                     loadFragment(new OrdersFragment());
+                    return true;
+                case R.id.nav_user:
+                    loadFragment(new ProfileFragment());
                     return true;
                 default:
                     return false;
