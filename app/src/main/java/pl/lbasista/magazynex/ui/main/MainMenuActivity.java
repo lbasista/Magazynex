@@ -80,4 +80,16 @@ public class MainMenuActivity extends AppCompatActivity {
                 .replace(R.id.main_content, fragment)
                 .commit();
     }
+
+    public void refreshCurrentFragment() {
+        Fragment current = getSupportFragmentManager().findFragmentById(R.id.main_content);
+        if (current instanceof ProductListFragment) loadFragment(new ProductListFragment());
+        else if (current instanceof FavouriteFragment) loadFragment(new FavouriteFragment());
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 123 && resultCode == RESULT_OK) refreshCurrentFragment();
+    }
 }

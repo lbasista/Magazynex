@@ -1,5 +1,7 @@
 package pl.lbasista.magazynex.ui.product;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -37,6 +39,8 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
     private ProductAdapter productAdapter;
     private FloatingActionButton buttonSort;
     private List<Product> currentList; //Aktualnie wyświetlana lista
+    private ProductViewModel viewModel;
+    private Observer<List<Product>> updateUI;
 
     @Nullable
     @Override
@@ -69,9 +73,8 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
         });
         buttonSort.setOnClickListener(v -> new SortDialogFragment().show(getChildFragmentManager(), "SortDialog"));
 
-        ProductViewModel viewModel = new ViewModelProvider(this).get(ProductViewModel.class);
-
-        Observer<List<Product>> updateUI = products -> {
+        viewModel = new ViewModelProvider(this).get(ProductViewModel.class);
+        updateUI = products -> {
             currentList = products;
             if (products == null || products.isEmpty()) {
                 //Brak wyników

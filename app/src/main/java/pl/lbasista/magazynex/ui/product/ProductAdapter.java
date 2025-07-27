@@ -1,5 +1,6 @@
 package pl.lbasista.magazynex.ui.product;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.transition.Hold;
 
 import java.util.List;
 
@@ -57,7 +59,23 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
         //Ustawiamy nazwę i ilość
         holder.textViewProductName.setText(product.name);
-        holder.textViewProductDetails.setText(product.producer + " • Na stanie: " + product.quantity);
+        holder.textViewProductProducent.setText(product.producer);
+        holder.textViewProductQuantity.setText("Na stanie: " + String.valueOf(product.quantity));
+
+        new Thread(() -> {
+            AppDatabase db = AppDatabase.getInstance(holder.itemView.getContext());
+            int onList = db.orderProductDao().getTotalCountForProduct(product.id);
+            int quantityLeft = product.quantity - onList;
+
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                holder.textViewProductQuantityOnList.setText("Na liście: " + onList);
+                holder.textViewProductQuantityLeft.setText("Wolnych: " + quantityLeft);
+                int colorId = R.color.gray;
+                if (quantityLeft == 0) colorId = R.color.pink;
+                else if (quantityLeft < 0) colorId = R.color.red;
+                holder.textViewProductQuantityLeft.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), colorId));
+            });
+        }).start();
 
         //Kod kreskowy
         String barcode = product.barcode != null ? product.barcode : "";
@@ -117,8 +135,8 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             intent.putExtra("quantity", product.quantity);
             intent.putExtra("description", product.description);
             intent.putExtra("imageUri", product.imageUri);
-
-            v.getContext().startActivity(intent);
+            Activity activity = (Activity) v.getContext();
+            activity.startActivityForResult(intent, 123);
         });
     }
 
@@ -128,14 +146,17 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     }
 
     static class ProductViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewProductBarcode, textViewProductName, textViewProductDetails, textFavourite, textViewProductApplication;
+        TextView textViewProductBarcode, textViewProductName, textViewProductProducent, textViewProductQuantity, textViewProductQuantityOnList, textViewProductQuantityLeft, textFavourite, textViewProductApplication;
         ImageView imageViewProduct;
 
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewProductBarcode = itemView.findViewById(R.id.textViewProductBarcode);
             textViewProductName = itemView.findViewById(R.id.textViewProductName);
-            textViewProductDetails = itemView.findViewById(R.id.textViewProductDetails);
+            textViewProductProducent = itemView.findViewById(R.id.textViewProductProducent);
+            textViewProductQuantity = itemView.findViewById(R.id.textViewProductQuantity);
+            textViewProductQuantityOnList = itemView.findViewById(R.id.textViewProductQuantityOnList);
+            textViewProductQuantityLeft = itemView.findViewById(R.id.textViewProductQuantityLeft);
             textFavourite = itemView.findViewById(R.id.textFavourite);
             imageViewProduct = itemView.findViewById(R.id.imageProduct);
             textViewProductApplication = itemView.findViewById(R.id.textViewProductApplication);

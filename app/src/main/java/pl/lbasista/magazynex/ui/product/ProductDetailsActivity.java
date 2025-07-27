@@ -195,20 +195,20 @@ public class ProductDetailsActivity extends AppCompatActivity {
                                 int finalOrderId = selectedOrderId;
                                 int finalQuantity = selectedQuantity;
                                 new Thread(() -> {
-                                    OrderProduct newRelation = new OrderProduct(finalOrderId, currentProductId, finalQuantity);
-                                    long result = orderProductDao.insert(newRelation);
-
-                                    if (result != -1)
-                                        orderDao.addProductToOrder(finalOrderId, finalQuantity);
-
+                                    OrderProduct existing = orderProductDao.getByOrderAndProduct(finalOrderId, currentProductId);
+                                    if (existing != null) {
+                                        existing.count += finalQuantity;
+                                        orderProductDao.update(existing);
+                                    } else {
+                                        OrderProduct newRelation = new OrderProduct(finalOrderId, currentProductId, finalQuantity);
+                                        orderProductDao.insert(newRelation);
+                                    }
+                                    orderDao.addProductToOrder(finalOrderId, finalQuantity);
                                     runOnUiThread(() -> {
-                                        if (result == -1)
-                                            Toast.makeText(this, "Produkt już jest na liście", Toast.LENGTH_SHORT).show();
-                                        else {
-                                            Toast.makeText(this, "Produkt dodano", Toast.LENGTH_SHORT).show();
-                                            displayOrderLists(currentProductId);
-                                            dialog.dismiss();
-                                        }
+                                        Toast.makeText(this, "Produkt dodano do listy", Toast.LENGTH_SHORT).show();
+                                        displayOrderLists(currentProductId);
+                                        setResult(RESULT_OK);
+                                        dialog.dismiss();
                                     });
                                 }).start();
                             } catch (Exception e) {

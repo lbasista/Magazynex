@@ -293,20 +293,19 @@ public class OrderDetailsActivity extends AppCompatActivity {
                             int finalProductId = selectedProductId;
                             int finalQuantity = selectedQuantity;
                             new Thread(() -> {
-                                OrderProduct newRelation = new OrderProduct(currentOrderId, finalProductId, finalQuantity);
-                                long result = orderProductDao.insert(newRelation);
-
-                                if (result != -1)
-                                    orderDao.addProductToOrder(currentOrderId, finalQuantity);
-
+                                OrderProduct existing = orderProductDao.getByOrderAndProduct(currentOrderId, finalProductId);
+                                if (existing != null) {
+                                    existing.count += finalQuantity;
+                                    orderProductDao.update(existing);
+                                } else {
+                                    OrderProduct newRelation = new OrderProduct(currentOrderId, finalProductId, finalQuantity);
+                                    orderProductDao.insert(newRelation);
+                                }
+                                orderDao.addProductToOrder(currentOrderId, finalQuantity);
                                 runOnUiThread(() -> {
-                                    if (result == -1)
-                                        Toast.makeText(this, "Produkt już jest na liście", Toast.LENGTH_SHORT).show();
-                                    else {
-                                        Toast.makeText(this, "Produkt dodano", Toast.LENGTH_SHORT).show();
-                                        loadProducts();
-                                        dialog.dismiss();
-                                    }
+                                    Toast.makeText(this, "Produkt dodano do listy", Toast.LENGTH_SHORT).show();
+                                    loadProducts();
+                                    dialog.dismiss();
                                 });
                             }).start();
                         });

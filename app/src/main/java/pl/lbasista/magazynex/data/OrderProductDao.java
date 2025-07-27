@@ -4,6 +4,7 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import java.util.List;
 
@@ -11,6 +12,9 @@ import java.util.List;
 public interface OrderProductDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     long insert(OrderProduct orderProduct);
+
+    @Update
+    void update(OrderProduct orderProduct);
 
     @Query("SELECT * FROM order_product WHERE productId = :productId")
     List<OrderProduct> getByProductId(int productId);
@@ -23,4 +27,10 @@ public interface OrderProductDao {
 
     @Query("DELETE FROM order_product WHERE orderId = :orderId")
     void deleteAllByOrderId(int orderId);
+
+    @Query("SELECT SUM(count) FROM order_product WHERE productId = :id")
+    int getTotalCountForProduct(int id);
+
+    @Query("SELECT * FROM order_product WHERE orderId = :orderId AND productId = :productId LIMIT 1")
+    OrderProduct getByOrderAndProduct(int orderId, int productId);
 }
