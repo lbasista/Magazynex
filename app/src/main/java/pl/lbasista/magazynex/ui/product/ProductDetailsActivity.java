@@ -106,6 +106,8 @@ public class ProductDetailsActivity extends AppCompatActivity {
                     textBarcode.setText(updatedProduct.barcode);
                     textQuantity.setText(String.valueOf(updatedProduct.quantity));
                     textDescription.setText(updatedProduct.description);
+                    displayCategory(updatedProduct.applicationCategoryId);
+                    displayOrderLists(updatedProduct.id);
                     String newImageUri = updatedProduct.imageUri;
                     if (newImageUri != null && !newImageUri.isEmpty()) {
                         imageViewProduct.setImageURI(Uri.parse(newImageUri));

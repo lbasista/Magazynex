@@ -21,4 +21,7 @@ public interface ApplicationCategoryDao {
     //Zwracanie po ID
     @Query("SELECT * FROM ApplicationCategory WHERE id = :id LIMIT 1")
     ApplicationCategory getById(int id);
+
+    @Query("SELECT * FROM ApplicationCategory")
+    List<ApplicationCategory> getAllSync();
 }

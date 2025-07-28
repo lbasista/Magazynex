@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,35 +18,104 @@
             android:textColor="@color/colorPrimary"
             android:textStyle="bold"
             android:padding="8dp"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginBottom="10dp"/>
 
-        <EditText
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/editName"
+            android:id="@+id/editNameLayout"
             android:hint="Nazwa"
-            android:inputType="text"/>
+            android:layout_marginBottom="10dp">
 
-        <EditText
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/editName"
+                android:inputType="text"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/editProducer"
+            android:id="@+id/editProducerLayout"
             android:hint="Producent"
-            android:inputType="text"/>
+            android:layout_marginBottom="10dp">
 
-        <EditText
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/editProducer"
+                android:inputType="text"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/editQuantity"
+            android:id="@+id/editQuantityLayout"
             android:hint="Ilość"
-            android:inputType="number"/>
+            android:layout_marginBottom="10dp">
 
-        <EditText
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/editQuantity"
+                android:inputType="number"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/editDescription"
             android:hint="Opis"
-            android:inputType="textMultiLine"/>
+            android:layout_marginBottom="10dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/editDescription"
+                android:inputType="textMultiLine"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Zastosowanie">
+
+            <AutoCompleteTextView
+                android:id="@+id/editCategoryDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"/>
+        </com.google.android.material.textfield.TextInputLayout>
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp">
+
+            <Button
+                android:id="@+id/buttonSelectImage"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Wybierz zdjęcie"
+                android:gravity="left|center"
+                app:icon="@drawable/ic_camera"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:textColor="?attr/colorSecondary"
+                app:iconTint="?attr/colorSecondary"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/buttonRemoveImage"
+                app:icon="@drawable/ic_bin"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_marginLeft="6dp"
+                app:iconTint="@color/design_default_color_error"/>
+        </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
