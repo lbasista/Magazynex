@@ -26,8 +26,12 @@ import pl.lbasista.magazynex.data.User;
 
 public class Dialog_edit_user extends DialogFragment {
     private final User userToEdit;
+    private final int loggedUserId;
 
-    public Dialog_edit_user(User user) {this.userToEdit = user;}
+    public Dialog_edit_user(User user, int loggedUserId) {
+        this.userToEdit = user;
+        this.loggedUserId = loggedUserId;
+    }
 
     @NonNull
     @Override
@@ -48,6 +52,7 @@ public class Dialog_edit_user extends DialogFragment {
         TextInputLayout layoutSurname = view.findViewById(R.id.inputNewSurnameLayout);
         TextInputLayout layoutRole = view.findViewById(R.id.dropdownRoleLayout);
         TextView roleInfo = view.findViewById(R.id.textRoleInformation);
+        Button buttonRemove = view.findViewById(R.id.buttonRemoveUser);
         Button buttonSave = view.findViewById(R.id.buttonSaveUser);
         Button buttonCancel = view.findViewById(R.id.buttonCancelUser);
 
@@ -60,6 +65,27 @@ public class Dialog_edit_user extends DialogFragment {
         inputName.setText(userToEdit.name);
         inputSurname.setText(userToEdit.surname);
         dropdownRole.setText(userToEdit.role, false);
+
+        if (userToEdit.id == loggedUserId) buttonRemove.setVisibility(View.GONE);
+        else {
+            buttonRemove.setOnClickListener(v -> {
+                new AlertDialog.Builder(requireContext())
+                        .setTitle("Usuwanie użytkownika")
+                        .setMessage("Czy na pewno chcesz usunąć tego użytkownika?")
+                        .setPositiveButton("Usuń", (dialogInterface, i) -> {
+                            new Thread(() -> {
+                                AppDatabase.getInstance(requireContext()).userDao().deleteUser(userToEdit);
+                                requireActivity().runOnUiThread(() -> {
+                                    Toast.makeText(getContext(), "Użytkownik usunięty", Toast.LENGTH_SHORT).show();
+                                    getParentFragmentManager().setFragmentResult("user_updated", new Bundle());
+                                    dismiss();
+                                });
+                            }).start();
+                        })
+                        .setNegativeButton("Anuluj", null)
+                        .show();
+            });
+        }
 
         buttonCancel.setOnClickListener(v -> dismiss());
         buttonSave.setOnClickListener(v -> {

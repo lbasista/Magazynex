@@ -47,7 +47,9 @@ public class Dialog_add_user extends DialogFragment {
         Button buttonCancel = view.findViewById(R.id.buttonCancelUser);
 
         TextView title = view.findViewById(R.id.dialogTitleEdit);
+        Button remove = view.findViewById(R.id.buttonRemoveUser);
         title.setVisibility(View.GONE);
+        remove.setVisibility(View.GONE);
 
         String[] roleOptions = new String[] {"Administrator", "Pracownik", "Przeglądający"};
         ArrayAdapter<String> adapterRoles = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, roleOptions);

@@ -1,6 +1,7 @@
 package pl.lbasista.magazynex.data;
 
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
@@ -23,4 +24,7 @@ public interface UserDao {
 
     @Query("SELECT * FROM users WHERE id = :id")
     User getById(int id);
+
+    @Delete
+    void deleteUser(User user);
 }

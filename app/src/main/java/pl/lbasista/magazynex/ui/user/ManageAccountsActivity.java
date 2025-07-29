@@ -24,6 +24,8 @@ public class ManageAccountsActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_accounts);
+        SessionManager session = new SessionManager(this);
+        int loggedUserId = session.getUserId();
 
         recyclerViewAccount = findViewById(R.id.recyclerViewAccounts);
         recyclerViewAccount.setLayoutManager(new LinearLayoutManager(this));
@@ -52,17 +54,19 @@ public class ManageAccountsActivity extends AppCompatActivity {
             List<User> users = userDao.getAllUsers();
 
             runOnUiThread(() -> {
-                AccountsAdapter accountsAdapter = new AccountsAdapter(users);
+                AccountsAdapter accountsAdapter = new AccountsAdapter(users, loggedUserId);
                 recyclerViewAccount.setAdapter(accountsAdapter);
             });
         }).start();
     }
 
     private void reloadAccounts() {
+        SessionManager session = new SessionManager(this);
+        int loggedUserId = session.getUserId();
         new Thread(() -> {
             UserDao userDao = AppDatabase.getInstance(this).userDao();
             List<User> users = userDao.getAllUsers();
-            runOnUiThread(() -> recyclerViewAccount.setAdapter(new AccountsAdapter(users)));
+            runOnUiThread(() -> recyclerViewAccount.setAdapter(new AccountsAdapter(users, loggedUserId)));
         }).start();
     }
 }

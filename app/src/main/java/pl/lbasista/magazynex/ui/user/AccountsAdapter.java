@@ -17,8 +17,12 @@ import pl.lbasista.magazynex.data.User;
 
 public class AccountsAdapter extends RecyclerView.Adapter<AccountsAdapter.AccountViewHolder> {
     private final List<User> users;
+    private final int loggedUserId;
 
-    public AccountsAdapter(List<User> users) {this.users = users;}
+    public AccountsAdapter(List<User> users, int loggedUserId) {
+        this.users = users;
+        this.loggedUserId = loggedUserId;
+    }
 
     @NonNull
     @Override
@@ -34,7 +38,7 @@ public class AccountsAdapter extends RecyclerView.Adapter<AccountsAdapter.Accoun
         holder.tvFullName.setText(user.getFullName());
         holder.tvRole.setText(user.role);
         holder.btnEdit.setOnClickListener(v -> {
-            Dialog_edit_user dialog = new Dialog_edit_user(users.get(position));
+            Dialog_edit_user dialog = new Dialog_edit_user(users.get(position), loggedUserId);
             AppCompatActivity activity = (AppCompatActivity) v.getContext();
             dialog.show(activity.getSupportFragmentManager(), "edit_user");
         });
