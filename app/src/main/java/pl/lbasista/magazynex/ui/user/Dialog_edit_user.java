@@ -56,12 +56,12 @@ public class Dialog_edit_user extends DialogFragment {
         Button buttonSave = view.findViewById(R.id.buttonSaveUser);
         Button buttonCancel = view.findViewById(R.id.buttonCancelUser);
 
+        layoutPassword.setHelperText("Zostaw puste, aby nie zmieniać hasła");
         String[] roleOptions = new String[] {"Administrator", "Pracownik", "Przeglądający"};
         ArrayAdapter<String> adapterRoles = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, roleOptions);
         dropdownRole.setAdapter(adapterRoles);
 
         inputLogin.setText(userToEdit.login);
-        inputPassword.setText(userToEdit.password);
         inputName.setText(userToEdit.name);
         inputSurname.setText(userToEdit.surname);
         dropdownRole.setText(userToEdit.role, false);
@@ -100,10 +100,6 @@ public class Dialog_edit_user extends DialogFragment {
                 layoutLogin.setError("Wpisz login");
                 hasError = true;
             } else layoutLogin.setError(null);
-            if (password.isEmpty()) {
-                layoutPassword.setError("Wpisz hasło");
-                hasError = true;
-            } else layoutPassword.setError(null);
             if (name.isEmpty()) {
                 layoutName.setError("Wpisz imię");
                 hasError = true;
@@ -120,7 +116,7 @@ public class Dialog_edit_user extends DialogFragment {
 
             new Thread(() -> {
                 userToEdit.login = login;
-                userToEdit.password = BCrypt.withDefaults().hashToString(12, password.toCharArray());
+                if (!password.isEmpty()) userToEdit.password = BCrypt.withDefaults().hashToString(12, password.toCharArray());
                 userToEdit.name = name;
                 userToEdit.surname = surname;
                 userToEdit.role = role;
