@@ -19,6 +19,7 @@ import androidx.fragment.app.DialogFragment;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.User;
@@ -72,28 +73,28 @@ public class Dialog_edit_user extends DialogFragment {
             if (login.isEmpty()) {
                 layoutLogin.setError("Wpisz login");
                 hasError = true;
-            }
+            } else layoutLogin.setError(null);
             if (password.isEmpty()) {
                 layoutPassword.setError("Wpisz hasło");
                 hasError = true;
-            }
+            } else layoutPassword.setError(null);
             if (name.isEmpty()) {
                 layoutName.setError("Wpisz imię");
                 hasError = true;
-            }
+            } else layoutName.setError(null);
             if (surname.isEmpty()) {
                 layoutSurname.setError("Wpisz nazwisko");
                 hasError = true;
-            }
+            } else layoutSurname.setError(null);
             if (role.isEmpty()) {
                 layoutRole.setError("Wybierz rolę");
                 hasError = true;
-            }
+            } else layoutRole.setError(null);
             if (hasError) return;
 
             new Thread(() -> {
                 userToEdit.login = login;
-                userToEdit.password = password;
+                userToEdit.password = BCrypt.withDefaults().hashToString(12, password.toCharArray());
                 userToEdit.name = name;
                 userToEdit.surname = surname;
                 userToEdit.role = role;

@@ -21,8 +21,7 @@ import androidx.annotation.Nullable;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-import org.w3c.dom.Text;
-
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.User;
@@ -66,29 +65,29 @@ public class Dialog_add_user extends DialogFragment {
             if (login.isEmpty()) {
                 inputLoginLayout.setError("Wprowadź login");
                 hasError = true;
-            }
+            } else inputLoginLayout.setError(null);
             if (password.isEmpty()) {
                 inputPasswordLayout.setError("Wprowadź hasło");
                 hasError = true;
-            }
+            } else inputPasswordLayout.setError(null);
             if (name.isEmpty()) {
                 inputNameLayout.setError("Wprowadź imię");
                 hasError = true;
-            }
+            } else inputNameLayout.setError(null);
             if (surname.isEmpty()) {
                 inputSurnameLayout.setError("Wprowadź nazwisko");
                 hasError = true;
-            }
+            } else inputSurnameLayout.setError(null);
             if (role.isEmpty()) {
                 dropdownRoleLayout.setError("Wybierz rolę");
                 hasError = true;
-            }
+            } else dropdownRoleLayout.setError(null);
             if (hasError) return;
 
             new Thread(() -> {
                 User newUser = new User();
                 newUser.login = login;
-                newUser.password = password;
+                newUser.password = BCrypt.withDefaults().hashToString(12, password.toCharArray());
                 newUser.name = name;
                 newUser.surname = surname;
                 newUser.role = role;

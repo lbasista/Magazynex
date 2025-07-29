@@ -13,6 +13,7 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.List;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.User;
@@ -23,7 +24,6 @@ public class LoginActivity extends AppCompatActivity {
     TextInputLayout inputLoginLayout, inputPasswordLayout;
     TextInputEditText inputLogin, inputPassword;
     Button buttonLogin;
-    UserDao userDao;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -45,7 +45,7 @@ public class LoginActivity extends AppCompatActivity {
                 user.name = "Admin";
                 user.surname = "Admin";
                 user.login = "admin";
-                user.password = "admin";
+                user.password = BCrypt.withDefaults().hashToString(12, "admin".toCharArray());
                 user.role = "Administrator";
                 userDao.insert(user);
             }
@@ -67,8 +67,8 @@ public class LoginActivity extends AppCompatActivity {
             if (isError) return;
 
             new Thread(() -> {
-                User user = AppDatabase.getInstance(this).userDao().getLogin(userLogin, userPassword);
-                if (user == null) {
+                User user = AppDatabase.getInstance(this).userDao().getByLogin(userLogin);
+                if (user == null || !BCrypt.verifyer().verify(userPassword.toCharArray(), user.password).verified) {
                     runOnUiThread(() -> Toast.makeText(this, "Błędne dane", Toast.LENGTH_SHORT).show());
                     return;
                 }

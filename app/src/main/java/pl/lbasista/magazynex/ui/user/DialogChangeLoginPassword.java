@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 
 import com.google.android.material.textfield.TextInputEditText;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.User;
@@ -65,7 +66,7 @@ public class DialogChangeLoginPassword extends DialogFragment {
                 User user = userDao.getById(userId);
                 if (user != null) {
                     if (showLogin) user.login = newLogin;
-                    if (showPassword) user.password = newPassword;
+                    if (showPassword) user.password = BCrypt.withDefaults().hashToString(12, newPassword.toCharArray());
                     userDao.updateUser(user);
                     requireActivity().runOnUiThread(() -> {
                         Toast.makeText(getContext(), "Zaktualizowano dane", Toast.LENGTH_SHORT);

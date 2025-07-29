@@ -41,6 +41,9 @@ dependencies {
     implementation ("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor ("com.github.bumptech.glide:glide:4.16.0")
 
+    //BCrypt
+    implementation ("at.favre.lib:bcrypt:0.9.0")
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
