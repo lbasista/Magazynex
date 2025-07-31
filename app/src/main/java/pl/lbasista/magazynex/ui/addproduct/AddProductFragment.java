@@ -75,7 +75,7 @@ public class AddProductFragment extends Fragment {
             buttonSelectImage.setOnClickListener(x -> {
                 Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                 intent.setType("image/*");
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); //Uprawnienia do zdjęć
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION); //Uprawnienia do zdjęć
                 startActivityForResult(intent, 101);
             });
 
@@ -117,14 +117,11 @@ public class AddProductFragment extends Fragment {
             if (uri != null) {
                 selectedImageUri = uri.toString();
 
-                final int takeFlags = data.getFlags();
-                if ((takeFlags & Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION) != 0) {
-                    final int realFlags = takeFlags & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                    try {
-                        requireContext().getContentResolver().takePersistableUriPermission(uri, realFlags);
-                    } catch (SecurityException e) {
-                        e.printStackTrace();
-                    }
+                final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                try {
+                    requireContext().getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                } catch (SecurityException e) {
+                    e.printStackTrace();
                 }
 
                 //Nazwa pliku

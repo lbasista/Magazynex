@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -330,8 +331,16 @@ public class ProductDetailsActivity extends AppCompatActivity {
         textDescription.setText(getIntent().getStringExtra("description"));
         String uri = getIntent().getStringExtra("imageUri");
         if (uri != null && !uri.isEmpty()) {
-            imageViewProduct.setImageURI(Uri.parse(uri));
-            imageViewProduct.setVisibility(View.VISIBLE);
+            try {
+                imageViewProduct.setImageURI(Uri.parse(uri));
+                imageViewProduct.setVisibility(View.VISIBLE);
+            } catch (SecurityException e) {
+                e.printStackTrace();
+                imageViewProduct.setVisibility(View.GONE);
+                Snackbar snackbar = Snackbar.make(imageViewProduct, "Brak dostępu do zdjęcia!\nWybierz grafikę ponownie.", Snackbar.LENGTH_INDEFINITE)
+                        .setAction("Edytuj", v -> toolbar.getMenu().performIdentifierAction(R.id.prodEdit, 0));
+                snackbar.setActionTextColor(ContextCompat.getColor(this, R.color.colorPrimary)).show();
+            }
         } else {
             imageViewProduct.setVisibility(View.GONE);
         }
