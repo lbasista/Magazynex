@@ -45,6 +45,10 @@ public interface ProductDao {
             "barcode LIKE '%' || :search || '%'")
     LiveData<List<Product>> searchProducts(String search);
 
+    //Znajdź po ID kategorii
+    @Query("SELECT * FROM product WHERE applicationCategoryId = :categoryId")
+    List<Product> getByCategoryId(int categoryId);
+
     //Usuwanie produktu
     @Delete
     void delete(Product product);

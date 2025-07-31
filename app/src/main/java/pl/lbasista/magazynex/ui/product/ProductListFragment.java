@@ -3,6 +3,7 @@ package pl.lbasista.magazynex.ui.product;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.View;
@@ -18,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.Comparator;
@@ -28,6 +30,7 @@ import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.ApplicationCategory;
 import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Product;
+import pl.lbasista.magazynex.ui.category.ManageCategoriesActivity;
 import pl.lbasista.magazynex.ui.user.RoleChecker;
 import pl.lbasista.magazynex.ui.user.SessionManager;
 
@@ -37,7 +40,9 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
     private Button buttonSearch;
     private TextView textViewEmpty;
     private ProductAdapter productAdapter;
-    private FloatingActionButton buttonSort;
+    private FloatingActionButton fabMain;
+    private ExtendedFloatingActionButton fabSort, fabCategory;
+    private boolean isFabMenuOpen = false;
     private List<Product> currentList; //Aktualnie wyświetlana lista
     private ProductViewModel viewModel;
     private Observer<List<Product>> updateUI;
@@ -59,19 +64,35 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
         buttonSearch = view.findViewById(R.id.searchProduct);
         textViewEmpty = view.findViewById(R.id.textViewEmpty);
 
-        //Sortowanie
-        buttonSort = view.findViewById(R.id.buttonSort);
-        view.post(() -> { //Pozycja przycisku nad menu
+        fabMain = view.findViewById(R.id.fabMain);
+        fabSort = view.findViewById(R.id.fabSort);
+        fabCategory = view.findViewById(R.id.fabCategory);
+
+        //Pozycja przycisku nad menu
+        view.post(() -> {
             View menuBar = requireActivity().findViewById(R.id.bottom_navigation);
             if (menuBar != null) {
                 int menuHeight = menuBar.getHeight();
                 int extraSpacing = (int) getResources().getDisplayMetrics().density * 16;
-                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) buttonSort.getLayoutParams();
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) fabMain.getLayoutParams();
                 lp.bottomMargin = menuHeight + extraSpacing;
-                buttonSort.setLayoutParams(lp);
+                fabMain.setLayoutParams(lp);
             }
         });
-        buttonSort.setOnClickListener(v -> new SortDialogFragment().show(getChildFragmentManager(), "SortDialog"));
+
+        fabMain.setOnClickListener(v -> {
+            Log.d("FAB", "Kliknięto fabMain");
+            toggleFabMenu();
+        });
+        fabSort.setOnClickListener(v -> {
+            toggleFabMenu();
+            new SortDialogFragment().show(getChildFragmentManager(), "SortDialog");
+        });
+        fabCategory.setOnClickListener(v -> {
+            toggleFabMenu();
+            Intent intent = new Intent(requireContext(), ManageCategoriesActivity.class);
+            startActivity(intent);
+        });
 
         viewModel = new ViewModelProvider(this).get(ProductViewModel.class);
         updateUI = products -> {
@@ -80,12 +101,12 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
                 //Brak wyników
                 textViewEmpty.setVisibility(View.VISIBLE);
                 recyclerViewProducts.setVisibility(View.GONE);
-                buttonSort.setVisibility(View.GONE);
+                fabMain.setVisibility(View.GONE);
             } else {
                 //Są wyniki
                 textViewEmpty.setVisibility(View.GONE);
                 recyclerViewProducts.setVisibility(View.VISIBLE);
-                buttonSort.setVisibility(View.VISIBLE);
+                fabMain.setVisibility(View.VISIBLE);
                 productAdapter = new ProductAdapter(currentList, viewModel);
                 recyclerViewProducts.setAdapter(productAdapter);
             }
@@ -187,5 +208,16 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
                 break;
         }
         productAdapter.notifyDataSetChanged();
+    }
+
+    private void toggleFabMenu() {
+        if (isFabMenuOpen) {
+            fabSort.hide();
+            fabCategory.hide();
+        } else {
+            fabSort.show();
+            fabCategory.show();
+        }
+        isFabMenuOpen = !isFabMenuOpen;
     }
 }

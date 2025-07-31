@@ -27,5 +27,7 @@
             android:label="Ekran logowania"/>
         <activity android:name=".ui.user.ManageAccountsActivity"
             android:label="Zarządzanie użytkownikami"/>
+        <activity android:name=".ui.category.ManageCategoriesActivity"
+            android:label="Zarządzanie kategoriami"/>
     </application>
 </manifest>

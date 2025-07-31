@@ -41,7 +41,7 @@ public class ManageAccountsActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> finish());
         toolbar.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.addUser) {
+            if (id == R.id.addObject) {
                 Dialog_add_user dialog = new Dialog_add_user();
                 dialog.show(getSupportFragmentManager(), "dialog_add_user");
                 return true;

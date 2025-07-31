@@ -8,15 +8,15 @@
     <com.google.android.material.appbar.MaterialToolbar
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/appBarUserDetails"
-        app:title="Lista użytkowników"
+        android:id="@+id/appBarCategories"
+        app:title="Kategorie"
         app:titleTextColor="@color/white"
         android:background="?attr/colorPrimary"
         app:navigationIcon="@drawable/ic_arrow_back"
         app:menu="@menu/add_details_menu"/>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewAccounts"
+        android:id="@+id/recyclerViewCategories"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="8dp"/>
