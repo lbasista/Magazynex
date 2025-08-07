@@ -35,6 +35,9 @@ import pl.lbasista.magazynex.data.OrderProduct;
 import pl.lbasista.magazynex.data.OrderProductDao;
 import pl.lbasista.magazynex.data.Product;
 import pl.lbasista.magazynex.data.ProductDao;
+import pl.lbasista.magazynex.data.ProductRepository;
+import pl.lbasista.magazynex.data.RemoteProductRepository;
+import pl.lbasista.magazynex.data.RoomProductRepository;
 import pl.lbasista.magazynex.ui.user.RoleChecker;
 import pl.lbasista.magazynex.ui.user.SessionManager;
 
@@ -49,6 +52,9 @@ public class ProductDetailsActivity extends AppCompatActivity {
     private MaterialToolbar toolbar;
     private int currentProductId = -1;
     private String name, producer;
+    private ProductRepository repository;
+    private RemoteProductRepository remoteRepo;
+    private RoomProductRepository roomRepo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,7 +88,25 @@ public class ProductDetailsActivity extends AppCompatActivity {
         }
 
         //Powrót do listy produktów
-        toolbar.setNavigationOnClickListener(v -> finish());
+        toolbar.setNavigationOnClickListener(v -> {
+            setResult(RESULT_OK);
+            finish();
+        });
+
+        //Wybór repo
+        SessionManager session = new SessionManager(this);
+        if (session.isRemoteMode()) {
+            remoteRepo = new RemoteProductRepository(this, session.getApiUrl());
+            remoteRepo.fetchAllProductsFromApi();;
+            repository = remoteRepo;
+        } else {
+            roomRepo = new RoomProductRepository(this);
+            repository = roomRepo;
+        }
+
+        if (remoteRepo != null) {
+            remoteRepo.getAllProducts().observe(this, products -> setIconState());
+        }
 
         toolbar.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
@@ -238,6 +262,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
 
                                     runOnUiThread(() -> {
                                         Toast.makeText(this, "Produkt usunięty", Toast.LENGTH_SHORT).show();
+                                        setResult(RESULT_OK);
                                         finish();
                                     });
                                 }
@@ -247,20 +272,40 @@ public class ProductDetailsActivity extends AppCompatActivity {
                         .show();
                 return true;
             } else if (id == R.id.prodFav) { //Ulubione
-                new Thread(() -> {
-                    Product p = productDao.getByNameAndProducer(name, producer);
-                    if (p != null){
-                        p.favourite = !p.favourite; //Zmiana stanu polubienia
-                        productDao.update(p); //Zapis do bazy
-
-                        runOnUiThread(() -> {
-                            int iconRes = p.favourite ? R.drawable.ic_star : R.drawable.ic_star_empty;
-                            toolbar.getMenu().findItem(R.id.prodFav).setIcon(iconRes);
-                            String msg = p.favourite ? "Dodano do ulubionych" : "Usunięto z ulubionych";
-                            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-                        });
+                if (remoteRepo != null) { //Baza zdalna
+                    Product p = null;
+                    String msg = null;
+                    List<Product> productList = remoteRepo.getAllProducts().getValue();
+                    if (productList != null) {
+                        for (Product prod : productList) {
+                            if (prod.name.equals(name) && prod.producer.equals(producer)) {
+                                p = prod;
+                                break;
+                            }
+                        }
                     }
-                }).start();
+                    if (p == null) {
+                        msg = "Nie znaleziono produktu w bazie";
+                        return true;
+                    } else {
+                        remoteRepo.toggleFavourite(p);
+                        remoteRepo.fetchAllProductsFromApi();
+                        remoteRepo.fetchFavouritesFromApi();
+                        msg = !p.favourite ? "Dodano do ulubionych" : "Usunięto z ulubionych";
+                    }
+                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                } else { //Room
+                    new Thread(() -> {
+                        Product p = productDao.getByNameAndProducer(name, producer);
+                        if (p == null) return;
+                        p.favourite = !p.favourite;
+                        productDao.update(p);
+                        runOnUiThread(() -> {
+                            setIconState();
+                            Toast.makeText(this, p.favourite ? "Dodano do ulubionych" : "Usunięto z ulubionych", Toast.LENGTH_SHORT).show();
+                        });
+                    }).start();
+                }
                 return true;
             }
             return false;
@@ -275,7 +320,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     displayCategory(p.applicationCategoryId);
                     displayOrderLists(currentProductId);
-                    toolbar.getMenu().findItem(R.id.prodFav).setIcon(p.favourite ? R.drawable.ic_star : R.drawable.ic_star_empty);
+                    setIconState();
                 });
             }
         }).start();
@@ -308,6 +353,12 @@ public class ProductDetailsActivity extends AppCompatActivity {
                 textOrderLists.setText(displayText);
             });
         }).start();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setIconState();
     }
 
     private void displayCategory(int categoryId) {
@@ -343,6 +394,31 @@ public class ProductDetailsActivity extends AppCompatActivity {
             }
         } else {
             imageViewProduct.setVisibility(View.GONE);
+        }
+    }
+
+    private void setIconState() {
+        if (remoteRepo != null) { //Baza zdalna
+            Product p = null;
+            List<Product> productList = remoteRepo.getAllProducts().getValue();
+            if (productList != null) {
+                for (Product prod : productList) {
+                    if (prod.name.equals(name) && prod.producer.equals(producer)) {
+                        p = prod;
+                        break;
+                    }
+                }
+            }
+            final boolean isFavourite = p != null && p.favourite;
+            toolbar.getMenu().findItem(R.id.prodFav).setIcon(isFavourite ? R.drawable.ic_star : R.drawable.ic_star_empty);
+        } else { //Room
+            new Thread(() -> {
+                Product p = productDao.getByNameAndProducer(name, producer);
+                final boolean isFavourite = p != null && p.favourite;
+                runOnUiThread(() -> {
+                    toolbar.getMenu().findItem(R.id.prodFav).setIcon(isFavourite ? R.drawable.ic_star : R.drawable.ic_star_empty);;
+                });
+            }).start();
         }
     }
 }

@@ -44,6 +44,9 @@ dependencies {
     //BCrypt
     implementation ("at.favre.lib:bcrypt:0.9.0")
 
+    //HTTP
+    implementation ("com.android.volley:volley:1.2.1")
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

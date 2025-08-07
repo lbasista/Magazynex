@@ -33,6 +33,23 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:hint="Baza danych"
+            android:id="@+id/inputAddressLayout"
+            android:layout_margin="16dp"
+            app:startIconDrawable="@drawable/ic_data_search"
+            app:helperText="Zostaw puste, by używać lokalnej bazy">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/inputAddress"
+                android:inputType="text"
+                android:paddingStart="48dp"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:hint="Login"
             android:id="@+id/inputLoginLayout"
             android:layout_margin="16dp"

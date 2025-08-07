@@ -111,7 +111,7 @@
         android:layout_marginTop="8dp"
         android:text="Dowiedz się więcej o rolach"
         android:textStyle="italic"
-        android:textColor="?attr/colorPrimary"
+        android:textColor="@color/colorPrimary"
         android:clickable="true"
         android:focusable="true"/>
 

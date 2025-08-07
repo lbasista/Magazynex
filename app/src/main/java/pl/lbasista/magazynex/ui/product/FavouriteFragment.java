@@ -1,10 +1,10 @@
 package pl.lbasista.magazynex.ui.product;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.View;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,15 +15,23 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.Product;
+import pl.lbasista.magazynex.data.ProductRepository;
+import pl.lbasista.magazynex.data.RemoteProductRepository;
+import pl.lbasista.magazynex.data.RoomProductRepository;
+import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class FavouriteFragment extends Fragment implements SortDialogFragment.SortDialogListener {
     private RecyclerView recyclerViewProducts;
     ProductAdapter productAdapter;
+    private ProductViewModel viewModel;
+    private ProductRepository repository;
+    private RemoteProductRepository remoteRepo;
     private FloatingActionButton buttonSort;
     private List<Product> favouriteList;
 
@@ -53,12 +61,29 @@ public class FavouriteFragment extends Fragment implements SortDialogFragment.So
         });
         buttonSort.setOnClickListener(v -> new SortDialogFragment().show(getChildFragmentManager(), "SortDialog"));
 
+        SessionManager session = new SessionManager(requireContext());
+        if (session.isRemoteMode()) {
+            remoteRepo = new RemoteProductRepository(requireContext(), session.getApiUrl());
+            remoteRepo.fetchFavouritesFromApi();
+            repository = remoteRepo;
+        } else {
+            repository = new RoomProductRepository(requireContext());
+            remoteRepo = null;
+        }
 
-        ProductViewModel viewModel = new ViewModelProvider(this).get(ProductViewModel.class);
+        ProductViewModelFactory factory = new ProductViewModelFactory(repository);
+        viewModel = new ViewModelProvider(this, factory).get(ProductViewModel.class);
+        productAdapter = new ProductAdapter(new ArrayList<>(), viewModel, product -> {
+            viewModel.toggleFavourite(product);
+        });
+        recyclerViewProducts.setAdapter(productAdapter);
         viewModel.getFavourites().observe(getViewLifecycleOwner(), products -> {
+            Log.d("FAV_FRAGMENT", "LiveData changed, products size: " + products.size());
+            for (Product p : products) {
+                Log.d("FAV_FRAGMENT", "LiveData: id = " + p.id + ", fav = " + p.favourite);
+            }
             favouriteList = products;
-            productAdapter = new ProductAdapter(products, viewModel);
-            recyclerViewProducts.setAdapter(productAdapter);
+            productAdapter.updateProducts(products);
         });
     }
 

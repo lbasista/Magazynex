@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
     android:layout_gravity="center_vertical"
     android:id="@+id/rowEditProduct"
@@ -55,6 +56,7 @@
         android:layout_margin="4dp"
         android:id="@+id/btnEditUser"
         android:src="@drawable/ic_pen"
+        app:tint="@color/black"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Edytuj użytkownika"
         android:layout_gravity="center_vertical"/>

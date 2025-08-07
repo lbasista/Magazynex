@@ -1,13 +1,12 @@
 package pl.lbasista.magazynex.ui.product;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -16,8 +15,6 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.transition.Hold;
 
 import java.util.List;
 
@@ -30,7 +27,7 @@ import pl.lbasista.magazynex.ui.user.RoleChecker;
 import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
-
+    private final OnFavouriteClickListener favouriteClickListener;
     private final List<Product> productList;
     private final ProductViewModel viewModel;
 
@@ -38,9 +35,14 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         return productList;
     }
 
-    public ProductAdapter(List<Product> productList, ProductViewModel viewModel) {
+    public interface OnFavouriteClickListener {
+        void onFavouriteClick(Product product);
+    }
+
+    public ProductAdapter(List<Product> productList, ProductViewModel viewModel, OnFavouriteClickListener listener) {
         this.productList = productList;
         this.viewModel = viewModel;
+        this.favouriteClickListener = listener;
     }
 
     @NonNull
@@ -124,7 +126,10 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         );
 
         //Po kliknięciu gwiazdki
-        holder.textFavourite.setOnClickListener(v -> viewModel.toggleFavourite(product));
+        holder.textFavourite.setOnClickListener(v -> {
+            if (favouriteClickListener != null) favouriteClickListener.onFavouriteClick(product);
+            Log.d("FAV_CALLBACK", "Kliknięto gwiazdkę: id=" + product.id + ", favourite=" + product.favourite);
+        });
 
         //Kliknięcie pozycji na liście
         holder.itemView.setOnClickListener(v -> {
@@ -143,6 +148,16 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     @Override
     public int getItemCount() {
         return productList.size();
+    }
+
+    public void updateProducts(List<Product> newList) {
+        Log.d("ADAPTER", "updateProducts: newList size = " + newList.size());
+        for (Product p : newList) {
+            Log.d("ADAPTER", "Product id = " + p.id + ", fav = " + p.favourite);
+        }
+        productList.clear();
+        productList.addAll(newList);
+        notifyDataSetChanged();
     }
 
     static class ProductViewHolder extends RecyclerView.ViewHolder {

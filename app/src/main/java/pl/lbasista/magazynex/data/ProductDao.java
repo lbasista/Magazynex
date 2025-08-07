@@ -46,7 +46,7 @@ public interface ProductDao {
     LiveData<List<Product>> searchProducts(String search);
 
     //Znajdź po ID kategorii
-    @Query("SELECT * FROM product WHERE applicationCategoryId = :categoryId")
+    @Query("SELECT * FROM Product WHERE applicationCategoryId = :categoryId")
     List<Product> getByCategoryId(int categoryId);
 
     //Usuwanie produktu
@@ -55,4 +55,7 @@ public interface ProductDao {
 
     @Query("SELECT * FROM Product")
     List<Product> getAllSync();
+
+    @Query("SELECT * FROM Product WHERE favourite = 1")
+    List<Product> getFavouritesList();
 }

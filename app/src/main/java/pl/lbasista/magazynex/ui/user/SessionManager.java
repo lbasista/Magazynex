@@ -1,7 +1,5 @@
 package pl.lbasista.magazynex.ui.user;
 
-import static android.provider.Settings.System.putInt;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -19,7 +17,6 @@ public class SessionManager {
     }
 
     public int getUserId() {return preferences.getInt(KEY_USER_ID, -1);}
-
     void clearSession() {preferences.edit().clear().apply();}
 
     public void saveUserRole(String role) {
@@ -28,4 +25,8 @@ public class SessionManager {
     }
 
     public String getUserRole() {return preferences.getString(KEY_USER_ROLE, "Przeglądający");}
+    public void setRemoteMode(boolean isRemote) {preferences.edit().putBoolean("REMOTE_MODE", isRemote).apply();}
+    public boolean isRemoteMode() {return preferences.getBoolean("REMOTE_MODE", false);}
+    public void setApiUrl(String url) {preferences.edit().putString("API_URL", url).apply();}
+    public String getApiUrl() {return preferences.getString("API_URL", null);}
 }

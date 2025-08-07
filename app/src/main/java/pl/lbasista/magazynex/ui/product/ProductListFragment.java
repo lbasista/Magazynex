@@ -30,8 +30,10 @@ import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.ApplicationCategory;
 import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Product;
+import pl.lbasista.magazynex.data.ProductRepository;
+import pl.lbasista.magazynex.data.RemoteProductRepository;
+import pl.lbasista.magazynex.data.RoomProductRepository;
 import pl.lbasista.magazynex.ui.category.ManageCategoriesActivity;
-import pl.lbasista.magazynex.ui.user.RoleChecker;
 import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class ProductListFragment extends Fragment implements SortDialogFragment.SortDialogListener {
@@ -46,6 +48,7 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
     private List<Product> currentList; //Aktualnie wyświetlana lista
     private ProductViewModel viewModel;
     private Observer<List<Product>> updateUI;
+    private RemoteProductRepository remoteRepo;
 
     @Nullable
     @Override
@@ -94,9 +97,21 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
             startActivity(intent);
         });
 
-        viewModel = new ViewModelProvider(this).get(ProductViewModel.class);
+        SessionManager session = new SessionManager(requireContext());
+        ProductRepository repository;
+        if (session.isRemoteMode()) {
+            remoteRepo = new RemoteProductRepository(requireContext(), session.getApiUrl());
+            remoteRepo.loadFromApi();
+            repository = remoteRepo;
+        } else repository = new RoomProductRepository(requireContext());
+        Log.d("TEST", "Tryb: " + (session.isRemoteMode() ? "ZDALNY" : "LOKALNY"));
+
+        ProductViewModelFactory factory = new ProductViewModelFactory(repository);
+        viewModel = new ViewModelProvider(this, factory).get(ProductViewModel.class);
+
         updateUI = products -> {
             currentList = products;
+            Log.d("DATA", "Liczba produktów w UI: " + (products != null ? products.size() : null));
             if (products == null || products.isEmpty()) {
                 //Brak wyników
                 textViewEmpty.setVisibility(View.VISIBLE);
@@ -107,7 +122,7 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
                 textViewEmpty.setVisibility(View.GONE);
                 recyclerViewProducts.setVisibility(View.VISIBLE);
                 fabMain.setVisibility(View.VISIBLE);
-                productAdapter = new ProductAdapter(currentList, viewModel);
+                productAdapter = new ProductAdapter(currentList, viewModel, product -> viewModel.toggleFavourite(product));
                 recyclerViewProducts.setAdapter(productAdapter);
             }
         };
@@ -126,6 +141,12 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
                 viewModel.searchProducts(query).observe(getViewLifecycleOwner(), updateUI);
             }
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (remoteRepo != null) remoteRepo.fetchAllProductsFromApi();
     }
 
     //Sortowanie

@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:text="Ulubione"
         android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
-        android:textColor="?attr/colorPrimary"
+        android:textColor="@color/colorPrimary"
         android:textStyle="bold"
         android:padding="8dp"
         android:layout_marginBottom="24dp"

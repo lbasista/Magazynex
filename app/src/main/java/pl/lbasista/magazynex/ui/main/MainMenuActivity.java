@@ -2,16 +2,13 @@ package pl.lbasista.magazynex.ui.main;
 
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.fragment.app.Fragment;
-
 import android.util.Log;
-import android.widget.LinearLayout;
-import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.navigation.NavigationBarView;
 
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.ui.orders.OrdersFragment;
@@ -35,6 +32,14 @@ public class MainMenuActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
             return;
+        }
+
+        if (session.isRemoteMode()) {
+            String apiUrl = getIntent().getStringExtra("api_url");
+            if (apiUrl != null) {
+                session.setApiUrl(apiUrl);
+                Log.d("API", "Tryb zdalny – zapisuję adres: " + apiUrl);
+            } else Log.e("API", "Brak adresu API");
         }
 
         super.onCreate(savedInstanceState);

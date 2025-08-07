@@ -103,8 +103,8 @@
                 android:gravity="left|center"
                 app:icon="@drawable/ic_camera"
                 style="@style/Widget.Material3.Button.OutlinedButton"
-                android:textColor="?attr/colorSecondary"
-                app:iconTint="?attr/colorSecondary"/>
+                android:textColor="@color/colorSecondary"
+                app:iconTint="@color/colorSecondary"/>
 
             <Button
                 android:layout_width="wrap_content"

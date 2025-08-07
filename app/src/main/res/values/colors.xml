@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="black">#181818</color>
+    <color name="white">#F2F3F4</color>
     <color name="green">#50C878</color>
     <color name="red">#D22B2B</color>
     <color name="pink">#FC8EAC</color>
@@ -11,7 +11,7 @@
     <color name="light_blue">#dbedfd</color>
     <color name="colorPrimary">#2196F3</color>
     <color name="colorPrimaryDark">#1976D2</color>
-    <color name="dark_purple">#3F51B5</color>
+    <color name="colorSecondary">#9E9E9E9E</color>
     <color name="yale_blue">#083D77</color>
     <color name="flax_yellow">#F3DE8A</color>
 </resources>

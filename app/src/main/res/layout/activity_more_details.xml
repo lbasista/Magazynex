@@ -39,7 +39,7 @@
             app:icon="@drawable/ic_plus"
             app:iconGravity="textStart"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            app:iconTint="?attr/colorSecondary"
+            app:iconTint="@color/black"
             android:layout_marginStart="8dp"/>
     </LinearLayout>
 
@@ -65,6 +65,6 @@
         android:gravity="left|center"
         app:icon="@drawable/ic_camera"
         style="@style/Widget.Material3.Button.OutlinedButton"
-        android:textColor="?attr/colorSecondary"
-        app:iconTint="?attr/colorSecondary"/>
+        android:textColor="@color/black"
+        app:iconTint="@color/black"/>
 </LinearLayout>
