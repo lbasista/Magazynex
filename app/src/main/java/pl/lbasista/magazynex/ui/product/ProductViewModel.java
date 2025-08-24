@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import pl.lbasista.magazynex.data.Product;
-import pl.lbasista.magazynex.data.ProductRepository;
+import pl.lbasista.magazynex.data.repo.ProductRepository;
 
 public class ProductViewModel extends ViewModel {
     private final ProductRepository repository;

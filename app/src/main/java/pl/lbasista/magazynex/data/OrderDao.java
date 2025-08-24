@@ -1,5 +1,6 @@
 package pl.lbasista.magazynex.data;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -27,4 +28,10 @@ public interface OrderDao {
 
     @Query("UPDATE orders SET quantity = quantity + :count WHERE id = :orderId")
     void addProductToOrder(int orderId, int count);
+
+    @Query("SELECT p.* FROM product p INNER JOIN order_product op ON p.id = op.productId WHERE op.orderId = :orderId")
+    LiveData<List<Product>> getProductsForOrder(int orderId);
+
+    @Query("SELECT o.* FROM orders o INNER JOIN order_product op ON o.id=op.orderId WHERE op.productId=:productId")
+    LiveData<List<Order>> getOrdersForProduct(int productId);
 }

@@ -1,10 +1,10 @@
 package pl.lbasista.magazynex.ui.orders;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,8 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pl.lbasista.magazynex.R;
-import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.Order;
+import pl.lbasista.magazynex.data.repo.OrderRepository;
+import pl.lbasista.magazynex.data.repo.RemoteOrderRepository;
+import pl.lbasista.magazynex.data.repo.RoomOrderRepository;
 import pl.lbasista.magazynex.ui.user.RoleChecker;
 import pl.lbasista.magazynex.ui.user.SessionManager;
 
@@ -31,6 +33,7 @@ public class OrdersFragment extends Fragment {
     private TextView textEmpty;
     private OrderAdapter adapter;
     private final ArrayList<Order> orderLists = new ArrayList<>();
+    private OrderRepository orderRepository;
 
     @NonNull @Override
     public View onCreateView(@NonNull LayoutInflater inf, @Nullable ViewGroup parent, @Nullable Bundle bs) {
@@ -43,6 +46,16 @@ public class OrdersFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerViewOrders);
         textEmpty = view.findViewById(R.id.textViewEmptyOrder);
         buttonAddOrder = view.findViewById(R.id.buttonAddOrder);
+        SessionManager session = new SessionManager(requireContext());
+        boolean useRemoteOrders = session.isRemoteMode();
+        String apiUrl = session.getApiUrl();
+
+        if (useRemoteOrders && apiUrl != null && !apiUrl.isEmpty()) {
+            orderRepository = new RemoteOrderRepository(requireContext().getApplicationContext(), apiUrl);
+        } else {
+            orderRepository = new RoomOrderRepository(requireContext().getApplicationContext());
+        }
+        android.util.Log.d("ORDERS", "Tryb zamówień: " + (useRemoteOrders ? "REMOTE" : "ROOM") + ", apiUrl=" + apiUrl);
 
         //Ukryj przycisk dla przeglądającego
         if (RoleChecker.isViewer(new SessionManager(requireContext()))) buttonAddOrder.setVisibility(View.GONE);
@@ -61,33 +74,32 @@ public class OrdersFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new OrderAdapter(orderLists, order -> Toast.makeText(requireContext(), "Kliknąłeś: " + order.getName(), Toast.LENGTH_SHORT).show());
         recyclerView.setAdapter(adapter);
-
-        loadOrdersFromDb();
+        loadOrders();
 
         buttonAddOrder.setOnClickListener(v -> {
             AddOrderBottomSheet sheet = new AddOrderBottomSheet();
             sheet.setOnOrderAddedListener(newOrder -> {
-                // dodajemy do lokalnej listy i informujemy adaptera
-                orderLists.add(newOrder);
-                adapter.notifyItemInserted(orderLists.size() - 1);
-                updateUI();
+                new Thread(() -> {
+                    long newId = orderRepository.insertOrder(newOrder);
+
+                    requireActivity().runOnUiThread(() -> {
+                        if (newId == 0L) {
+                            Toast.makeText(requireContext(), "Nie udało się zapisać zamówienia", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        try {newOrder.setId((int) newId);} catch (Throwable ignored) {}
+
+                        if (useRemoteOrders) {loadOrders();}
+                        else {
+                            orderLists.add(newOrder);
+                            adapter.notifyItemInserted(orderLists.size() - 1);
+                            updateUI();
+                        }
+                    });
+                }).start();
             });
             sheet.show(getChildFragmentManager(), "addOrder");
         });
-    }
-
-    private void loadOrdersFromDb() {
-        new Thread(() -> {
-            List<Order> fromDb = AppDatabase.getInstance(requireContext())
-                    .orderDao()
-                    .getAllOrders();
-            requireActivity().runOnUiThread(() -> {
-                orderLists.clear();
-                orderLists.addAll(fromDb);
-                adapter.notifyDataSetChanged();
-                updateUI();
-            });
-        }).start();
     }
 
     private void updateUI() {
@@ -99,6 +111,19 @@ public class OrdersFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        loadOrdersFromDb();
+        loadOrders();
+    }
+
+    private void loadOrders() {
+        new Thread(() -> {
+            List<Order> fromSource = orderRepository.getAllOrders();
+            Log.d("ORDERS", "Pobrano z API " + ((fromSource != null) ? fromSource.size() : 0) + " list");
+            requireActivity().runOnUiThread(() -> {
+                orderLists.clear();
+                orderLists.addAll(fromSource);
+                adapter.notifyDataSetChanged();
+                updateUI();
+            });
+        }).start();
     }
 }

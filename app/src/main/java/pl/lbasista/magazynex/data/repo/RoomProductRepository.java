@@ -1,11 +1,16 @@
-package pl.lbasista.magazynex.data;
+package pl.lbasista.magazynex.data.repo;
 
 import android.content.Context;
 
 import androidx.lifecycle.LiveData;
 
+import java.util.Collections;
 import java.util.List;
-import pl.lbasista.magazynex.data.RemoteProductRepository.ProductCallback;
+
+import pl.lbasista.magazynex.data.AppDatabase;
+import pl.lbasista.magazynex.data.Product;
+import pl.lbasista.magazynex.data.ProductDao;
+import pl.lbasista.magazynex.data.repo.RemoteProductRepository.ProductCallback;
 
 public class RoomProductRepository implements ProductRepository {
     private final Context context;
@@ -39,4 +44,10 @@ public class RoomProductRepository implements ProductRepository {
             callback.onResult(favourites);
         }).start();
     }
+
+    @Override
+    public List<Product> getAllProductsSync() {return AppDatabase.getInstance(context).productDao().getAllSync();}
+
+    @Override
+    public void fetchAllProductsFromApi() {}
 }

@@ -13,7 +13,6 @@ import androidx.annotation.Nullable;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import pl.lbasista.magazynex.R;
-import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.Order;
 
 public class AddOrderBottomSheet extends BottomSheetDialogFragment {
@@ -38,24 +37,14 @@ public class AddOrderBottomSheet extends BottomSheetDialogFragment {
             if (name.isEmpty()) {
                 nameEt.setError("Podaj nazwę");
                 return;
+            } else {
+                nameEt.setError(null);
             }
 
             Order newOrder = new Order(name, 0);
-
-            new Thread(() -> {
-                long id = AppDatabase
-                        .getInstance(requireContext())
-                        .orderDao()
-                        .insert(newOrder);
-                newOrder.setId((int) id);
-
-                requireActivity().runOnUiThread(() -> {
-                    listener.onOrderAdded(newOrder);
-                    dismiss();
-                });
-            }).start();
+            if (listener != null) listener.onOrderAdded(newOrder);
+            dismiss();
         });
-
         cancelBtn.setOnClickListener(v -> dismiss());
     }
 }

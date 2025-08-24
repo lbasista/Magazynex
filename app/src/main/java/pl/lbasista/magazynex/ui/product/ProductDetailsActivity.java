@@ -5,8 +5,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
-import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -31,13 +31,15 @@ import pl.lbasista.magazynex.data.ApplicationCategory;
 import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Order;
 import pl.lbasista.magazynex.data.OrderDao;
-import pl.lbasista.magazynex.data.OrderProduct;
 import pl.lbasista.magazynex.data.OrderProductDao;
 import pl.lbasista.magazynex.data.Product;
 import pl.lbasista.magazynex.data.ProductDao;
-import pl.lbasista.magazynex.data.ProductRepository;
-import pl.lbasista.magazynex.data.RemoteProductRepository;
-import pl.lbasista.magazynex.data.RoomProductRepository;
+import pl.lbasista.magazynex.data.repo.OrderRepository;
+import pl.lbasista.magazynex.data.repo.ProductRepository;
+import pl.lbasista.magazynex.data.repo.RemoteOrderRepository;
+import pl.lbasista.magazynex.data.repo.RemoteProductRepository;
+import pl.lbasista.magazynex.data.repo.RoomOrderRepository;
+import pl.lbasista.magazynex.data.repo.RoomProductRepository;
 import pl.lbasista.magazynex.ui.user.RoleChecker;
 import pl.lbasista.magazynex.ui.user.SessionManager;
 
@@ -55,6 +57,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
     private ProductRepository repository;
     private RemoteProductRepository remoteRepo;
     private RoomProductRepository roomRepo;
+    private OrderRepository orderRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +80,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
         textCategory = findViewById(R.id.textCategory);
         textOrderLists = findViewById(R.id.textOrderLists);
         toolbar = findViewById(R.id.appBarProductDetails);
+        currentProductId = getIntent().getIntExtra("productId", -1);
         name = getIntent().getStringExtra("name");
         producer = getIntent().getStringExtra("producer");
 
@@ -96,12 +100,18 @@ public class ProductDetailsActivity extends AppCompatActivity {
         //Wybór repo
         SessionManager session = new SessionManager(this);
         if (session.isRemoteMode()) {
+            //Produkty
             remoteRepo = new RemoteProductRepository(this, session.getApiUrl());
-            remoteRepo.fetchAllProductsFromApi();;
+            remoteRepo.fetchAllProductsFromApi();
             repository = remoteRepo;
+            //Listy
+            orderRepository = new RemoteOrderRepository(this, session.getApiUrl());
         } else {
+            //Produkty
             roomRepo = new RoomProductRepository(this);
             repository = roomRepo;
+            //Listy
+            orderRepository = new RoomOrderRepository(this);
         }
 
         if (remoteRepo != null) {
@@ -145,7 +155,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
                 return true;
             } else if (id == R.id.prodAddList) { //Dodaj do listy
                 new Thread(() -> {
-                    List<Order> orders = orderDao.getAllOrders();
+                    List<Order> orders = orderRepository.getAllOrders();
 
                     runOnUiThread(() -> {
                         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_to_order, null);
@@ -222,20 +232,15 @@ public class ProductDetailsActivity extends AppCompatActivity {
                                 int finalOrderId = selectedOrderId;
                                 int finalQuantity = selectedQuantity;
                                 new Thread(() -> {
-                                    OrderProduct existing = orderProductDao.getByOrderAndProduct(finalOrderId, currentProductId);
-                                    if (existing != null) {
-                                        existing.count += finalQuantity;
-                                        orderProductDao.update(existing);
-                                    } else {
-                                        OrderProduct newRelation = new OrderProduct(finalOrderId, currentProductId, finalQuantity);
-                                        orderProductDao.insert(newRelation);
-                                    }
-                                    orderDao.addProductToOrder(finalOrderId, finalQuantity);
+                                    boolean ok = orderRepository.addProductToOrder(finalOrderId, currentProductId, finalQuantity);
                                     runOnUiThread(() -> {
-                                        Toast.makeText(this, "Produkt dodano do listy", Toast.LENGTH_SHORT).show();
-                                        displayOrderLists(currentProductId);
-                                        setResult(RESULT_OK);
-                                        dialog.dismiss();
+                                        if (!ok) Toast.makeText(this, "Nie udało się dodać produktu", Toast.LENGTH_SHORT).show();
+                                        else {
+                                            Toast.makeText(this, "Produkt dodany do listy", Toast.LENGTH_SHORT).show();
+                                            displayOrderLists(currentProductId);
+                                            setResult(RESULT_OK);
+                                            dialog.dismiss();
+                                        }
                                     });
                                 }).start();
                             } catch (Exception e) {
@@ -243,7 +248,6 @@ public class ProductDetailsActivity extends AppCompatActivity {
                                 Toast.makeText(this, "Błąd: " + e.getMessage(), Toast.LENGTH_LONG).show();
                             }
                         });
-
                         Button buttonCancel = dialogView.findViewById(R.id.buttonCancel);
                         buttonCancel.setOnClickListener(v -> dialog.dismiss());
                     });
@@ -313,46 +317,42 @@ public class ProductDetailsActivity extends AppCompatActivity {
         loadFromIntent();
 
         //Kategoria i lista zamówień + gwiazdka
-        new Thread(() -> {
-            Product p = productDao.getByNameAndProducer(name, producer);
-            if (p != null) {
-                currentProductId = p.id;
-                runOnUiThread(() -> {
-                    displayCategory(p.applicationCategoryId);
-                    displayOrderLists(currentProductId);
-                    setIconState();
-                });
+        if (currentProductId != -1) {
+            if (remoteRepo != null) {
+                displayCategory(0);
+                displayOrderLists(currentProductId);
+                setIconState();
+            } else {
+                new Thread(() -> {
+                    Product p = productDao.getById(currentProductId);
+                    runOnUiThread(() -> {
+                        int catId = (p != null ? p.applicationCategoryId : 0);
+                        displayCategory(catId);
+                        displayOrderLists(currentProductId);
+                        setIconState();
+                    });
+                }).start();
             }
-        }).start();
-
-        //Dadawanie do listy
-        new Thread(() -> {
-            Product product = productDao.getByNameAndProducer(name, producer);
-            if (product != null) currentProductId = product.id;
-        }).start();
+        }
+        android.util.Log.d("ProductDetails", "currentProductId z Intenta = " + currentProductId);
     }
 
     private void displayOrderLists(int productId) {
-        new Thread(() -> {
-            List<OrderProduct> relations = orderProductDao.getByProductId(productId);
-
-            List<String> orderInfo = new ArrayList<>();
-            for (OrderProduct rel : relations) {
-                Order o = orderDao.getById(rel.orderId);
-                if (o != null) orderInfo.add("• " + o.name + " - " + rel.count + "szt.");
-            }
-
-            String displayText;
-            if (orderInfo.isEmpty()) {
-                displayText = ""; //Brak przypisania do list
-            } else {
-                displayText = "Na liście:\n" + TextUtils.join("\n", orderInfo);
-            }
-            runOnUiThread(() -> {
+        Log.d("ProductDetails", "Wywołano displayOrderLists dla productId=" + productId);
+        orderRepository.getOrdersForProduct(productId).observe(this, orders -> {
+            Log.d("ProductDetails", "getOrdersForProduct zwrócił " + (orders == null ? "null" : orders.size()+" elementów"));
+            if (orders == null || orders.isEmpty()) {
                 textOrderLists.setVisibility(TextView.VISIBLE);
-                textOrderLists.setText(displayText);
-            });
-        }).start();
+                textOrderLists.setText("");
+                return;
+            }
+
+            List<String> lines = new ArrayList<>();
+            for (Order o : orders) lines.add("• " + o.name + " - " + o.quantity + "szt.");
+            String displayText = "Na liście:\n" + TextUtils.join("\n", lines);
+            textOrderLists.setVisibility(TextView.VISIBLE);
+            textOrderLists.setText(displayText);
+        });
     }
 
     @Override

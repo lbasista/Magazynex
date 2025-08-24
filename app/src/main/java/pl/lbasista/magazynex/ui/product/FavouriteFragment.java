@@ -21,9 +21,9 @@ import java.util.List;
 
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.Product;
-import pl.lbasista.magazynex.data.ProductRepository;
-import pl.lbasista.magazynex.data.RemoteProductRepository;
-import pl.lbasista.magazynex.data.RoomProductRepository;
+import pl.lbasista.magazynex.data.repo.ProductRepository;
+import pl.lbasista.magazynex.data.repo.RemoteProductRepository;
+import pl.lbasista.magazynex.data.repo.RoomProductRepository;
 import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class FavouriteFragment extends Fragment implements SortDialogFragment.SortDialogListener {

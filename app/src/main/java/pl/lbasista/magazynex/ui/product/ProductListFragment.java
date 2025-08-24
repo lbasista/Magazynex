@@ -1,6 +1,5 @@
 package pl.lbasista.magazynex.ui.product;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,9 +29,9 @@ import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.ApplicationCategory;
 import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Product;
-import pl.lbasista.magazynex.data.ProductRepository;
-import pl.lbasista.magazynex.data.RemoteProductRepository;
-import pl.lbasista.magazynex.data.RoomProductRepository;
+import pl.lbasista.magazynex.data.repo.ProductRepository;
+import pl.lbasista.magazynex.data.repo.RemoteProductRepository;
+import pl.lbasista.magazynex.data.repo.RoomProductRepository;
 import pl.lbasista.magazynex.ui.category.ManageCategoriesActivity;
 import pl.lbasista.magazynex.ui.user.SessionManager;
 

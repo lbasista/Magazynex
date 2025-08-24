@@ -4,7 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
-import pl.lbasista.magazynex.data.ProductRepository;
+import pl.lbasista.magazynex.data.repo.ProductRepository;
 
 public class ProductViewModelFactory implements ViewModelProvider.Factory {
     private final ProductRepository repository;

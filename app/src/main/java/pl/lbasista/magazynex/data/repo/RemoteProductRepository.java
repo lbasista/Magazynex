@@ -1,4 +1,4 @@
-package pl.lbasista.magazynex.data;
+package pl.lbasista.magazynex.data.repo;
 
 import android.content.Context;
 import android.util.Log;
@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -19,6 +20,9 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import pl.lbasista.magazynex.data.Product;
 
 public class RemoteProductRepository implements ProductRepository {
     public interface ProductCallback {
@@ -171,5 +175,22 @@ public class RemoteProductRepository implements ProductRepository {
             callback.onResult(Collections.emptyList());
         });
         queue.add(request);
+    }
+
+    @Override
+    public List<Product> getAllProductsSync() {
+        if (apiUrl == null || apiUrl.isEmpty()) return new ArrayList<>();
+        RequestQueue queue = Volley.newRequestQueue(context);
+        RequestFuture<JSONArray> future = RequestFuture.newFuture();
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.POST, apiUrl, null, future, future);
+        queue.add(request);
+
+        try{
+            JSONArray response = future.get(10, TimeUnit.SECONDS);
+            return parseProducts(response);
+        } catch (Exception e) {
+            Log.e("RemoteProductRepo", "getAllProductsSync error: " + e.getMessage());
+            return new ArrayList<>();
+        }
     }
 }

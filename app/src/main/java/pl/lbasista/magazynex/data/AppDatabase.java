@@ -22,7 +22,6 @@ public abstract class AppDatabase extends RoomDatabase {
     static final Migration MIGRATION_ANY_TO_16 = new Migration(1, 16) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase supportSQLiteDatabase) {
-
         }
     };
 

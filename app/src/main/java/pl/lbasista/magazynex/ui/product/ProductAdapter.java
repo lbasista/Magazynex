@@ -134,6 +134,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         //Kliknięcie pozycji na liście
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), ProductDetailsActivity.class);
+            intent.putExtra("productId", product.id);
             intent.putExtra("name", product.name);
             intent.putExtra("producer", product.producer);
             intent.putExtra("barcode", product.barcode);
