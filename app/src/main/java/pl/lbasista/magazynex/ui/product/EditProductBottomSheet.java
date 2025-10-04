@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,13 @@ import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.ApplicationCategory;
 import pl.lbasista.magazynex.data.Product;
+import pl.lbasista.magazynex.data.repo.CategoryRepository;
+import pl.lbasista.magazynex.data.repo.ProductRepository;
+import pl.lbasista.magazynex.data.repo.RemoteCategoryRepository;
+import pl.lbasista.magazynex.data.repo.RemoteProductRepository;
+import pl.lbasista.magazynex.data.repo.RoomCategoryRepository;
+import pl.lbasista.magazynex.data.repo.RoomProductRepository;
+import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class EditProductBottomSheet extends BottomSheetDialogFragment {
     private EditText editName, editProducer, editQuantity, editDescription;
@@ -41,6 +49,11 @@ public class EditProductBottomSheet extends BottomSheetDialogFragment {
     private ActivityResultLauncher<Intent> imagePickerLauncher;
     private AutoCompleteTextView editCategoryDropdown;
     private int selectedCategoryId = 0;
+    private ProductRepository repository;
+    private CategoryRepository categoryRepository;
+    private AppDatabase db;
+
+    private static final String TAG = "EditProductSheet";
 
     public interface OnProductUpdatedListener {
         void onProductUpdated(Product updatedProduct);
@@ -70,7 +83,7 @@ public class EditProductBottomSheet extends BottomSheetDialogFragment {
     private String getFileNameFromUri(Uri uri) {
         if (uri.getScheme().equals("content")) {
             try (Cursor cursor = requireContext().getContentResolver().query(uri, null, null, null)) {
-                if (cursor != null & cursor.moveToFirst()) return cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME));
+                if (cursor != null && cursor.moveToFirst()) return cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME));
             }
         }
         String path = uri.getLastPathSegment();
@@ -85,7 +98,21 @@ public class EditProductBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(View view, Bundle state) {
         Bundle args = getArguments();
+        android.util.Log.d(TAG, "onViewCreated: args=" + args);
+
+        if (args == null) {
+            Toast.makeText(requireContext(), "Brak danych do edycji", Toast.LENGTH_SHORT).show();
+            dismiss();
+            return;
+        }
         barcode = args.getString("barcode");
+        android.util.Log.d(TAG, "Received barcode=" + barcode);
+
+        if (TextUtils.isEmpty(barcode)) {
+            Toast.makeText(requireContext(), "Brak kodu kreskowego", Toast.LENGTH_SHORT).show();
+            dismiss();
+            return;
+        }
 
         editName = view.findViewById(R.id.editName);
         editProducer = view.findViewById(R.id.editProducer);
@@ -97,64 +124,120 @@ public class EditProductBottomSheet extends BottomSheetDialogFragment {
         Button btnSave = view.findViewById(R.id.buttonSave);
         Button btnCancel = view.findViewById(R.id.buttonCancel);
 
+        SessionManager session = new SessionManager(requireContext());
+        db = AppDatabase.getInstance(requireContext());
+        if (session.isRemoteMode()) {
+            repository = new RemoteProductRepository(requireContext(), session.getApiUrl());
+            categoryRepository = new RemoteCategoryRepository(requireContext(), session.getApiUrl());
+        } else {
+            repository = new RoomProductRepository(requireContext());
+            categoryRepository = new RoomCategoryRepository(requireContext());
+        }
+
         Executors.newSingleThreadExecutor().execute(() -> {
-            Product existing = AppDatabase.getInstance(requireContext()).productDao().getByBarcode(barcode);
-            List<ApplicationCategory> categories = AppDatabase.getInstance(requireContext()).applicationCategoryDao().getAllSync();
+            Product existing;
+            if (session.isRemoteMode()) {
+                List<Product> remoteList = repository.getAllProductsSync();
+                existing = null;
+                for (Product p : remoteList) {
+                    if (p == null ) continue;
+                    boolean sameBarcode = p.barcode != null && p.barcode.equals(barcode);
+
+                    if (sameBarcode) {
+                        existing = p;
+                        break;
+                    }
+                }
+            } else existing = db.productDao().getByBarcode(barcode);
+
+            List<ApplicationCategory> categories = categoryRepository.getAllCategories();
+            final Product existingFinal = existing;
+
             requireActivity().runOnUiThread(() -> {
-                editName.setText(existing.name);
-                editProducer.setText(existing.producer);
-                editQuantity.setText(String.valueOf(existing.quantity));
-                editDescription.setText(existing.description);
-                if (categories.isEmpty()) {
-                    editCategoryDropdown.setText("");
-                    selectedCategoryId = 0;
-                    editCategoryDropdown.setEnabled(false);
-                } else {
-                    ArrayAdapter<ApplicationCategory> adapter = new ArrayAdapter<>(
+                ArrayAdapter<ApplicationCategory> adapter = new ArrayAdapter<>(
+                        requireContext(),
+                        android.R.layout.simple_dropdown_item_1line,
+                        categories
+                );
+                editCategoryDropdown.setAdapter(adapter);
+
+                if (existingFinal != null) {
+                    for (ApplicationCategory cat : categories) {
+                        if (cat.id == existingFinal.applicationCategoryId) {
+                            editCategoryDropdown.setText(cat.name, false);
+                            selectedCategoryId = cat.id;
+                            break;
+                        }
+                    }
+                }
+
+                editCategoryDropdown.setOnItemClickListener((parent, v1, position, id) -> {
+                    ApplicationCategory selected = adapter.getItem(position);
+                    if (selected != null) selectedCategoryId = selected.id;
+                });
+                editCategoryDropdown.setOnClickListener(v -> editCategoryDropdown.showDropDown());
+                editCategoryDropdown.setOnFocusChangeListener((v, hasFocus) -> {
+                    if (hasFocus) editCategoryDropdown.showDropDown();
+                });
+            });
+
+            android.util.Log.d(TAG, "DB lookup by barcode=" + barcode + " -> existing=" + (existing == null ? "null" : ("id=" + existing.id)));
+
+            final Product existingFinalCopy = existing;
+            final List<ApplicationCategory> cateriesFinal = categories;
+
+            requireActivity().runOnUiThread(() -> {
+                if (existingFinalCopy != null) {
+                    editName.setText(existingFinalCopy.name);
+                    editProducer.setText(existingFinalCopy.producer);
+                    editQuantity.setText(String.valueOf(existingFinalCopy.quantity));
+                    editDescription.setText(existingFinalCopy.description);
+                }
+
+                ArrayAdapter<ApplicationCategory> adapter = new ArrayAdapter<>(
                             requireContext(),
                             android.R.layout.simple_dropdown_item_1line,
                             categories
                     );
                     editCategoryDropdown.setAdapter(adapter);
 
-                    ApplicationCategory currentCategory = null;
-                    for (ApplicationCategory cat : categories) {
-                        if (cat.id == existing.applicationCategoryId) {
-                            currentCategory = cat;
-                            break;
+                    if (existingFinalCopy != null) {
+                        for (ApplicationCategory cat : categories) {
+                            if (cat.id == existingFinalCopy.applicationCategoryId) {
+                                editCategoryDropdown.setText(cat.name, false);
+                                selectedCategoryId = cat.id;
+                                break;
+                            }
                         }
                     }
-                    if (currentCategory != null) {
-                        editCategoryDropdown.setText(currentCategory.name, false);
-                        selectedCategoryId = currentCategory.id;
-                    }
-
                     editCategoryDropdown.setOnItemClickListener((parent, v1, position, id) -> {
                         ApplicationCategory selected = adapter.getItem(position);
-                        if (selected != null) {
-                            selectedCategoryId = selected.id;
-                        }
+                        if (selected != null) selectedCategoryId = selected.id;
                     });
                     editCategoryDropdown.setOnClickListener(v -> editCategoryDropdown.showDropDown());
                     editCategoryDropdown.setOnFocusChangeListener((v, hasFocus) -> {
                         if (hasFocus) editCategoryDropdown.showDropDown();
                     });
-                }
-            });
-            imageUri = existing.imageUri;
-            if (imageUri != null && !imageUri.isEmpty()) {
-                try {
-                    Uri uri = Uri.parse(imageUri);
-                    selectImage.setText("Wybrano: " + getFileNameFromUri(uri));
-                    removeImage.setVisibility(View.VISIBLE);
-                } catch (Exception e) {
+                });
+
+            String initialImageUri = (existing != null && !TextUtils.isEmpty(existing.imageUri)) ? existing.imageUri : getArguments().getString("imageUri");
+            imageUri = initialImageUri;
+            requireActivity().runOnUiThread(() -> {
+                if (!TextUtils.isEmpty(initialImageUri)) {
+                    try {
+                        Uri uri = Uri.parse(initialImageUri);
+                        selectImage.setText("Wybrano: " + getFileNameFromUri(uri));
+                        removeImage.setVisibility(View.VISIBLE);
+                    } catch (Exception e) {
+                        Log.w(TAG, "Błędny imageUri: " + initialImageUri, e);
+                        selectImage.setText("Wybierz zdjęcie");
+                        removeImage.setVisibility(View.GONE);
+                    }
+                } else {
                     selectImage.setText("Wybierz zdjęcie");
                     removeImage.setVisibility(View.GONE);
                 }
-            } else {
-                selectImage.setText("Wybierz zdjęcie");
-                removeImage.setVisibility(View.GONE);
-            }
+            });
         });
 
         selectImage.setOnClickListener(v -> {
@@ -208,25 +291,61 @@ public class EditProductBottomSheet extends BottomSheetDialogFragment {
             }
             if (hasError) return;
 
+            final int finalQuantity = quantity;
+
             Executors.newSingleThreadExecutor().execute(() -> {
-                AppDatabase db = AppDatabase.getInstance(requireContext());
-                Product p = db.productDao().getByBarcode(barcode);
-                p.name = name;
-                p.producer = producer;
-                p.quantity = Integer.parseInt(quantityText);
-                p.description = description;
-                p.applicationCategoryId = selectedCategoryId;
-                p.imageUri = imageUri;
-                db.productDao().update(p);
-                requireActivity().runOnUiThread(() -> {
-                    if (listener != null) {
-                        listener.onProductUpdated(p);
+                Product existing;
+                if (session.isRemoteMode()) {
+                    List<Product> remoteList = repository.getAllProductsSync();
+                    existing = null;
+                    for (Product p : remoteList) {
+                        if (p == null) continue;
+                        boolean sameBarcode = p.barcode != null && p.barcode.equals(barcode);
+                        if (sameBarcode) { existing = p; break; }
                     }
+                } else {
+                    existing = db.productDao().getByBarcode(barcode);
+                }
+
+                if (existing == null) {
+                    Product np = new Product();
+                    np.barcode = barcode;
+                    np.name = name;
+                    np.producer = producer;
+                    np.quantity = finalQuantity;
+                    np.description = description;
+                    np.applicationCategoryId = selectedCategoryId;
+                    np.imageUri = imageUri;
+
+                    long rowId = repository.insertProduct(np);
+                    if (rowId > 0) np.id = (int) rowId;
+
+                    requireActivity().runOnUiThread(() -> {
+                        if (listener != null) listener.onProductUpdated(np);
+                        dismiss();
+                    });
+                    return;
+                }
+
+                Product toUpdate = new Product();
+                toUpdate.id = existing.id;
+                toUpdate.barcode = barcode;
+                toUpdate.name = name;
+                toUpdate.producer = producer;
+                toUpdate.quantity = finalQuantity;
+                toUpdate.description = description;
+                toUpdate.applicationCategoryId = selectedCategoryId;
+                toUpdate.imageUri = imageUri;
+                toUpdate.favourite = existing.favourite;
+                
+                boolean ok = repository.updateProduct(toUpdate);
+                requireActivity().runOnUiThread(() -> {
+                    if (ok && listener != null) listener.onProductUpdated(toUpdate);
+                    if (!ok) Toast.makeText(requireContext(), "Nie udało się zapisać zmian", Toast.LENGTH_SHORT).show();
                     dismiss();
                 });
             });
         });
-
         btnCancel.setOnClickListener(v -> dismiss());
     }
 

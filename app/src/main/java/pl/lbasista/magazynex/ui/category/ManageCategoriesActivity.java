@@ -1,7 +1,6 @@
 package pl.lbasista.magazynex.ui.category;
 
 import android.os.Bundle;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,13 +12,17 @@ import com.google.android.material.appbar.MaterialToolbar;
 import java.util.List;
 
 import pl.lbasista.magazynex.R;
-import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.ApplicationCategory;
+import pl.lbasista.magazynex.data.repo.CategoryRepository;
+import pl.lbasista.magazynex.data.repo.RemoteCategoryRepository;
+import pl.lbasista.magazynex.data.repo.RoomCategoryRepository;
 import pl.lbasista.magazynex.ui.product.AddCategoryBottomSheet;
+import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class ManageCategoriesActivity extends AppCompatActivity {
     private RecyclerView recyclerViewCategories;
     private MaterialToolbar toolbar;
+    private CategoryRepository categoryRepository;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -31,6 +34,10 @@ public class ManageCategoriesActivity extends AppCompatActivity {
 
         toolbar = findViewById(R.id.appBarCategories);
         toolbar.setNavigationOnClickListener(v -> finish());
+
+        SessionManager session = new SessionManager(this);
+        if (session.isRemoteMode()) categoryRepository = new RemoteCategoryRepository(this, session.getApiUrl());
+        else categoryRepository = new RoomCategoryRepository(this);
 
         toolbar.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.addObject) {
@@ -46,8 +53,8 @@ public class ManageCategoriesActivity extends AppCompatActivity {
 
     private void loadCategories() {
         new Thread(() -> {
-            List<ApplicationCategory> categories = AppDatabase.getInstance(this).applicationCategoryDao().getAllSync();
-            runOnUiThread(() -> recyclerViewCategories.setAdapter(new CategoryAdapter(categories)));
+            List<ApplicationCategory> categories = categoryRepository.getAllCategories();
+            runOnUiThread(() -> recyclerViewCategories.setAdapter(new CategoryAdapter(categories, categoryRepository)));
         }).start();
     }
 }

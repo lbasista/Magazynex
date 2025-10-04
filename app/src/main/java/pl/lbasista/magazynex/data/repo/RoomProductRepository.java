@@ -1,6 +1,7 @@
 package pl.lbasista.magazynex.data.repo;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 
@@ -19,6 +20,32 @@ public class RoomProductRepository implements ProductRepository {
     public RoomProductRepository(Context context) {
         this.context = context;
         productDao = AppDatabase.getInstance(context).productDao();
+    }
+
+    @Override
+    public boolean updateProduct(Product product) {
+        AppDatabase.getInstance(context).productDao().update(product);
+        return true;
+    }
+
+    @Override
+    public long insertProduct(Product product) {
+        return AppDatabase.getInstance(context).productDao().insert(product);
+    }
+
+    @Override
+    public boolean deleteProduct(int id) {
+        try {
+            ProductDao dao = AppDatabase.getInstance(context).productDao();
+            Product p = dao.getById(id);
+
+            if (p == null) return false;
+            dao.delete(p);
+            return true;
+        } catch (Exception e) {
+            Log.e("RoomProductRepo", "deleteProduct error: " + e.getMessage());
+            return false;
+        }
     }
 
     @Override

@@ -20,10 +20,10 @@ public interface ProductDao {
     Product getById(int id);
 
     @Update
-    void update(Product product);
+    int update(Product product);
 
     @Insert
-    void insert(Product product);
+    long insert(Product product);
 
     @Query("SELECT * FROM Product")
     LiveData<List<Product>> getAll();

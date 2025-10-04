@@ -27,13 +27,22 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputLayout;
 
+import java.util.List;
+
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.ApplicationCategory;
 import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Product;
 import pl.lbasista.magazynex.data.ProductDao;
+import pl.lbasista.magazynex.data.repo.CategoryRepository;
+import pl.lbasista.magazynex.data.repo.ProductRepository;
+import pl.lbasista.magazynex.data.repo.RemoteCategoryRepository;
+import pl.lbasista.magazynex.data.repo.RemoteProductRepository;
+import pl.lbasista.magazynex.data.repo.RoomCategoryRepository;
+import pl.lbasista.magazynex.data.repo.RoomProductRepository;
 import pl.lbasista.magazynex.ui.product.AddCategoryBottomSheet;
+import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class AddProductFragment extends Fragment {
     private EditText editTextBarcode, editTextName, editTextProducer, editTextQuantity, editTextDescription;
@@ -140,12 +149,13 @@ public class AddProductFragment extends Fragment {
     private void setupApplicationCategoryDropdown(View view) {
         MaterialAutoCompleteTextView dropdown = view.findViewById(R.id.dropdownCategory);
 
-        //Pobierz listę
-        ApplicationCategoryDao dao = AppDatabase.getInstance(requireContext()).applicationCategoryDao();
+        SessionManager session = new SessionManager(requireContext());
+        CategoryRepository categoryRepository = session.isRemoteMode() ? new RemoteCategoryRepository(requireContext(), session.getApiUrl()) : new RoomCategoryRepository(requireContext());
 
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            dao.getAll().observe(getViewLifecycleOwner(), categories -> {
-                //Adapter do wyświetlania kategorii w dropdownie
+        new Thread(() -> {
+            List<ApplicationCategory> categories = categoryRepository.getAllCategories();
+
+            requireActivity().runOnUiThread(() -> {
                 ArrayAdapter<ApplicationCategory> adapter = new ArrayAdapter<>(
                         requireContext(),
                         android.R.layout.simple_dropdown_item_1line,
@@ -159,16 +169,14 @@ public class AddProductFragment extends Fragment {
 
                 dropdown.setOnItemClickListener((parent, v, position, id) -> {
                     ApplicationCategory selected = adapter.getItem(position);
-                    if (selected != null) {
-                        selectedApplicationCategoryId = selected.id; //Zapis wybranej kategorii
-                    }
+                    if (selected != null) selectedApplicationCategoryId = selected.id; //Zapis wybranej kategorii
                 });
                 dropdown.setOnClickListener(v -> dropdown.showDropDown());
                 dropdown.setOnFocusChangeListener((v, hasFocus) -> {
                     if (hasFocus) dropdown.showDropDown();
                 });
             });
-        }, 250);
+        }).start();
     }
 
     private void setupInputs(View view) {
@@ -204,8 +212,8 @@ public class AddProductFragment extends Fragment {
             Toast.makeText(getContext(), "Podaj ilość produktu", Toast.LENGTH_SHORT).show();
             return;
         }
-        int quantity = Integer.parseInt(quantityText);
 
+        int quantity = Integer.parseInt(quantityText);
         if (quantity < 0) {
             Toast.makeText(getContext(), "Ilość nie może być ujemna", Toast.LENGTH_SHORT).show();
             return;
@@ -213,32 +221,57 @@ public class AddProductFragment extends Fragment {
 
         Product product = new Product(barcode, productName, quantity, producer, false, selectedApplicationCategoryId, description, selectedImageUri);
 
+        SessionManager session = new SessionManager(requireContext());
+        ProductRepository repository = session.isRemoteMode() ? new RemoteProductRepository(requireContext(), session.getApiUrl()) : new RoomProductRepository(requireContext());
+
+        if (!session.isRemoteMode()) {
+            new Thread(() -> {
+                ProductDao dao = AppDatabase.getInstance(requireContext()).productDao();
+                Product existing;
+                if (!barcodeInput.isEmpty()) existing = dao.getByBarcode(barcodeInput);
+                else existing = dao.getByNameAndProducer(productName, producer);
+
+                requireActivity().runOnUiThread(() -> {
+                    Toast.makeText(getContext(), "Produkt dodany", Toast.LENGTH_SHORT).show();
+                    clearInputs();
+                });
+            }).start();
+            return;
+        }
+
         new Thread(() -> {
-            ProductDao dao = AppDatabase.getInstance(requireContext()).productDao();
+            List<Product> remoteList = repository.getAllProductsSync();
+            Product existing = null;
+            for (Product p : remoteList) {
+                if (p == null) continue;
+                boolean sameBarcode = p.barcode != null && p.barcode.equals(barcode);
+                boolean sameNameProducer = p.name.equals(productName) && p.producer.equals(producer);
 
-            Product existing;
-            if (!barcodeInput.isEmpty()) {
-                //Gdy jest kod kreskowy, szukaj po nim
-                existing = dao.getByBarcode(barcodeInput);
-            } else {
-                //Gdy brak kodu
-                existing = dao.getByNameAndProducer(productName, producer);
+                if (sameBarcode || sameNameProducer) {
+                    existing = p;
+                    break;
+                }
             }
 
-            if (existing != null) {
-                //Produkt w bazie
-                existing.quantity += quantity;
-                dao.update(existing);
-            } else {
-                //Brak w bazie
-                dao.insert(product);
-            }
+            if (existing == null) {
+                long newId = repository.insertProduct(product);
+                if (newId > 0) product.id = (int) newId;
 
-            requireActivity().runOnUiThread(() -> {
-                Toast.makeText(getContext(), "Produkt dodany", Toast.LENGTH_SHORT).show();
-                //requireActivity().getSupportFragmentManager().popBackStack();
-                clearInputs();
-            });
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    Toast.makeText(getContext(), "Produkt dodany", Toast.LENGTH_SHORT).show();
+                    clearInputs();
+                });
+            } else {
+                Product toUpdate = new Product(barcode, productName, existing.quantity + quantity, producer, existing.favourite, selectedApplicationCategoryId, description, selectedImageUri.isEmpty() ? existing.imageUri : selectedImageUri);
+                toUpdate.id = existing.id;
+
+                boolean ok = repository.updateProduct(toUpdate);
+
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    Toast.makeText(requireContext(), ok ? "Zaktualizowano" : "Błąd", Toast.LENGTH_SHORT).show();
+                    if (ok) clearInputs();
+                });
+            }
         }).start();
     }
 

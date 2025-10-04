@@ -34,4 +34,7 @@ public class Product {
         this.description = description;
         this.imageUri = imageUri;
     }
+
+    @Ignore
+    public Product() {}
 }

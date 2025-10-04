@@ -1,6 +1,7 @@
 package pl.lbasista.magazynex.ui.product;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
@@ -23,7 +24,9 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
@@ -34,10 +37,13 @@ import pl.lbasista.magazynex.data.OrderDao;
 import pl.lbasista.magazynex.data.OrderProductDao;
 import pl.lbasista.magazynex.data.Product;
 import pl.lbasista.magazynex.data.ProductDao;
+import pl.lbasista.magazynex.data.repo.CategoryRepository;
 import pl.lbasista.magazynex.data.repo.OrderRepository;
 import pl.lbasista.magazynex.data.repo.ProductRepository;
+import pl.lbasista.magazynex.data.repo.RemoteCategoryRepository;
 import pl.lbasista.magazynex.data.repo.RemoteOrderRepository;
 import pl.lbasista.magazynex.data.repo.RemoteProductRepository;
+import pl.lbasista.magazynex.data.repo.RoomCategoryRepository;
 import pl.lbasista.magazynex.data.repo.RoomOrderRepository;
 import pl.lbasista.magazynex.data.repo.RoomProductRepository;
 import pl.lbasista.magazynex.ui.user.RoleChecker;
@@ -58,6 +64,8 @@ public class ProductDetailsActivity extends AppCompatActivity {
     private RemoteProductRepository remoteRepo;
     private RoomProductRepository roomRepo;
     private OrderRepository orderRepository;
+    private CategoryRepository categoryRepository;
+    private Map<Integer, String> catNameCache = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,16 +114,33 @@ public class ProductDetailsActivity extends AppCompatActivity {
             repository = remoteRepo;
             //Listy
             orderRepository = new RemoteOrderRepository(this, session.getApiUrl());
+            categoryRepository = new RemoteCategoryRepository(this, session.getApiUrl());
         } else {
             //Produkty
             roomRepo = new RoomProductRepository(this);
             repository = roomRepo;
             //Listy
             orderRepository = new RoomOrderRepository(this);
+            categoryRepository = new RoomCategoryRepository(this);
         }
 
         if (remoteRepo != null) {
-            remoteRepo.getAllProducts().observe(this, products -> setIconState());
+            remoteRepo.getAllProducts().observe(this, products -> {
+                setIconState();
+
+                int categoryId = 0;
+                if (products != null) {
+                    for (Product p : products) {
+                        boolean sameId = (p.id == currentProductId);
+                        boolean sameKeys = (p.name.equals(name) && p.producer.equals(producer));
+                        if (sameId || sameKeys) {
+                            categoryId = p.applicationCategoryId;
+                            break;
+                        }
+                    }
+                }
+                displayCategory(categoryId);
+            });
         }
 
         toolbar.setOnMenuItemClickListener(item -> {
@@ -129,6 +154,14 @@ public class ProductDetailsActivity extends AppCompatActivity {
                 args.putInt("quantity", getIntent().getIntExtra("quantity", 0));
                 args.putString("description", getIntent().getStringExtra("description"));
                 args.putString("imageUri", getIntent().getStringExtra("imageUri"));
+
+                android.util.Log.d("ProductDetails", "Open Edit sheet with args: "
+                        + "barcode=" + getIntent().getStringExtra("barcode")
+                        + ", name=" + getIntent().getStringExtra("name")
+                        + ", producer=" + getIntent().getStringExtra("name")
+                        + ", quantity=" + getIntent().getIntExtra("quantity", 0)
+                        + ", description=" + getIntent().getStringExtra("description")
+                        + ", imageUri=" + getIntent().getStringExtra("description"));
 
                 EditProductBottomSheet sheet = new EditProductBottomSheet();
                 sheet.setArguments(args);
@@ -258,18 +291,31 @@ public class ProductDetailsActivity extends AppCompatActivity {
                         .setTitle("Usuwanie produktu")
                         .setMessage("Czy chcesz usunąć ten produkt z bazy?")
                         .setPositiveButton("Tak", (dialog, which) -> {
+                            final int toDelete;
+                            if (getIntent() != null && getIntent().hasExtra("productId")) toDelete = getIntent().getIntExtra("productId", 0);
+                            else {
+                                AppDatabase db = AppDatabase.getInstance(this);
+                                Product found = db.productDao().getByNameAndProducer(name, producer);
+                                toDelete = (found != null) ? found.id : 0;
+                            }
+
+                            if (toDelete <= 0) {
+                                Toast.makeText(this, "Błąd ustalenia ID produktu", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
 
                             new Thread(() -> {
-                                Product toDelete = productDao.getByNameAndProducer(name, producer);
-                                if (toDelete != null) {
-                                    productDao.delete(toDelete);
-
-                                    runOnUiThread(() -> {
+                                boolean ok = repository.deleteProduct(toDelete);
+                                runOnUiThread(() -> {
+                                    if (ok) {
                                         Toast.makeText(this, "Produkt usunięty", Toast.LENGTH_SHORT).show();
-                                        setResult(RESULT_OK);
+                                        setResult(RESULT_OK, new Intent().putExtra("deletedProductId", toDelete));
                                         finish();
-                                    });
-                                }
+                                    } else {
+                                        Toast.makeText(this, "Nie udało się usunąć produktu", Toast.LENGTH_SHORT).show();
+                                        setResult(RESULT_CANCELED);
+                                    }
+                                });
                             }).start();
                         })
                         .setNegativeButton("Anuluj", null)
@@ -319,7 +365,19 @@ public class ProductDetailsActivity extends AppCompatActivity {
         //Kategoria i lista zamówień + gwiazdka
         if (currentProductId != -1) {
             if (remoteRepo != null) {
-                displayCategory(0);
+                int categoryId = 0;
+                List<Product> list = remoteRepo.getAllProducts().getValue();
+                if (list != null) {
+                    for (Product p : list) {
+                        boolean sameId = (p.id == currentProductId);
+                        boolean sameKeys = (p.name.equals(name) && p.producer.equals(producer));
+                        if (sameId || sameKeys) {
+                            categoryId = p.applicationCategoryId;
+                            break;
+                        }
+                    }
+                }
+                displayCategory(categoryId);
                 displayOrderLists(currentProductId);
                 setIconState();
             } else {
@@ -367,9 +425,10 @@ public class ProductDetailsActivity extends AppCompatActivity {
             return;
         }
         new Thread(() -> {
-            ApplicationCategory cat = applicationCategoryDao.getById(categoryId);
-            String categoryName = (cat != null ? cat.name : "");
-            runOnUiThread(() -> textCategory.setText(categoryName));
+            List<ApplicationCategory> all = categoryRepository.getAllCategories();
+            for (ApplicationCategory c : all) catNameCache.put(c.id, c.name);
+            final String name = catNameCache.getOrDefault(categoryId, "");
+            runOnUiThread(() -> textCategory.setText(name));
         }).start();
     }
 

@@ -14,17 +14,25 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.ApplicationCategory;
 import pl.lbasista.magazynex.data.Product;
+import pl.lbasista.magazynex.data.repo.CategoryRepository;
+import pl.lbasista.magazynex.data.repo.RemoteProductRepository;
+import pl.lbasista.magazynex.ui.user.SessionManager;
 
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
     private List<ApplicationCategory> categoryList;
+    private final CategoryRepository categoryRepository;
 
-    public CategoryAdapter(List<ApplicationCategory> categoryList) {this.categoryList = categoryList;}
+    public CategoryAdapter(List<ApplicationCategory> categoryList, CategoryRepository categoryRepository) {
+        this.categoryList = categoryList;
+        this.categoryRepository = categoryRepository;
+    }
 
     @Override
     public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
@@ -32,20 +40,37 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         holder.textCategoryName.setText(category.name);
         holder.itemView.setOnClickListener(v -> {
             Context context = v.getContext();
-            new Thread(() -> {
-                List<Product> products = AppDatabase.getInstance(context).productDao().getByCategoryId(category.id);
-                StringBuilder message = new StringBuilder();
+            SessionManager session = new SessionManager(context);
 
-                if (products.isEmpty()) message.append("Wybrana kategoria jest pusta");
-                else {
+            new Thread(() -> {
+                List<Product> products;
+
+                if (session.isRemoteMode()) {
+                    RemoteProductRepository repository = new RemoteProductRepository(context, session.getApiUrl());
+                    List<Product> allProducts = repository.getAllProductsSync();
+                    products = new ArrayList<>();
+                    if (allProducts != null) {
+                        for (Product p : allProducts) {
+                            if (p != null && p.applicationCategoryId == category.id) products.add(p);
+                        }
+                    }
+                } else {
+                    products = AppDatabase.getInstance(context).productDao().getByCategoryId(category.id);
+                }
+
+                StringBuilder message = new StringBuilder();
+                if (products == null || products.isEmpty()) {
+                    message.append("Wybrana kategoria jest pusta.");
+                } else {
                     for (Product p : products) {
-                        message.append("• " + p.name + " (" + p.producer + ")\n");
+                        message.append("• ").append(p.name).append(" (").append(p.producer).append(")\n");
                     }
                 }
+
                 ((Activity) context).runOnUiThread(() -> {
                     new AlertDialog.Builder(context)
                             .setTitle(category.name)
-                            .setMessage("Produkty na liście:\n" + message.toString())
+                            .setMessage("Produkty na liście:\n" + message)
                             .setPositiveButton("Zamknij", null)
                             .show();
                 });
@@ -91,8 +116,11 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
                     if (!newName.isEmpty() && !newName.equals(category.name)) {
                         new Thread(() -> {
                             category.name = newName;
-                            AppDatabase.getInstance(context).applicationCategoryDao().update(category);
-                            ((Activity) context).runOnUiThread(onUpdated);
+                            boolean ok = categoryRepository.updateCategory(category);
+                            ((Activity) context).runOnUiThread(() -> {
+                                if (ok) onUpdated.run();
+                                else Toast.makeText(context, "Błąd zapisu kategorii", Toast.LENGTH_SHORT).show();
+                            });
                         }).start();
                     }
                 })

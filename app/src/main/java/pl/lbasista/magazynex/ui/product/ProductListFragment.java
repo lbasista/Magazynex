@@ -22,15 +22,20 @@ import com.google.android.material.floatingactionbutton.ExtendedFloatingActionBu
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.ApplicationCategory;
 import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Product;
+import pl.lbasista.magazynex.data.repo.CategoryRepository;
 import pl.lbasista.magazynex.data.repo.ProductRepository;
+import pl.lbasista.magazynex.data.repo.RemoteCategoryRepository;
 import pl.lbasista.magazynex.data.repo.RemoteProductRepository;
+import pl.lbasista.magazynex.data.repo.RoomCategoryRepository;
 import pl.lbasista.magazynex.data.repo.RoomProductRepository;
 import pl.lbasista.magazynex.ui.category.ManageCategoriesActivity;
 import pl.lbasista.magazynex.ui.user.SessionManager;
@@ -48,6 +53,8 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
     private ProductViewModel viewModel;
     private Observer<List<Product>> updateUI;
     private RemoteProductRepository remoteRepo;
+    private CategoryRepository categoryRepository;
+    private Map<Integer, String> catNameById = new HashMap<>();
 
     @Nullable
     @Override
@@ -102,7 +109,11 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
             remoteRepo = new RemoteProductRepository(requireContext(), session.getApiUrl());
             remoteRepo.loadFromApi();
             repository = remoteRepo;
-        } else repository = new RoomProductRepository(requireContext());
+            categoryRepository = new RemoteCategoryRepository(requireContext(), session.getApiUrl());
+        } else {
+            repository = new RoomProductRepository(requireContext());
+            categoryRepository = new RoomCategoryRepository(requireContext());
+        }
         Log.d("TEST", "Tryb: " + (session.isRemoteMode() ? "ZDALNY" : "LOKALNY"));
 
         ProductViewModelFactory factory = new ProductViewModelFactory(repository);
@@ -110,6 +121,7 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
 
         updateUI = products -> {
             currentList = products;
+            applyCategoryNames(currentList);
             Log.d("DATA", "Liczba produktów w UI: " + (products != null ? products.size() : null));
             if (products == null || products.isEmpty()) {
                 //Brak wyników
@@ -140,6 +152,29 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
                 viewModel.searchProducts(query).observe(getViewLifecycleOwner(), updateUI);
             }
         });
+
+        new Thread(() -> {
+            List<ApplicationCategory> categories = categoryRepository.getAllCategories();
+            Map<Integer, String> map = new HashMap<>();
+            for (ApplicationCategory c : categories) map.put(c.id, c.name);
+            requireActivity().runOnUiThread(() -> {
+                catNameById.clear();
+                catNameById.putAll(map);
+                if (currentList != null) {
+                    applyCategoryNames(currentList);
+                    if (productAdapter != null) productAdapter.notifyDataSetChanged();
+                }
+            });
+        }).start();
+    }
+
+    private void applyCategoryNames(List<Product> products) {
+        if (products == null) return;
+        for (Product p : products) {
+            if (p == null) continue;
+            String name = (p.applicationCategoryId != 0) ? catNameById.getOrDefault(p.applicationCategoryId, "") : "";
+            p.applicationName = (name == null || name.isEmpty()) ? "" : name;
+        }
     }
 
     @Override
@@ -193,38 +228,21 @@ public class ProductListFragment extends Fragment implements SortDialogFragment.
                 currentList.sort((p1, p2) -> Integer.compare(p2.quantity, p1.quantity));
                 break;
             case "CATEGORY_ASC":
-                new Thread(() -> {
-                    ApplicationCategoryDao dao = AppDatabase.getInstance(requireContext()).applicationCategoryDao();
-
-                    for (Product p : currentList) {
-                        if (p.applicationCategoryId != 0) {
-                            ApplicationCategory cat = dao.getById(p.applicationCategoryId);
-                            p.applicationName = cat != null ? cat.name.toLowerCase() : "zzzzz";
-                        } else {
-                            p.applicationName = "zzzzz";
-                        }
-                    }
-
-                    currentList.sort(Comparator.comparing(p -> p.applicationName));
-                    requireActivity().runOnUiThread(() -> productAdapter.notifyDataSetChanged());
-                }).start();
+                applyCategoryNames(currentList);
+                currentList.sort(Comparator.comparing(p -> {
+                    String n = (p.applicationName == null || p.applicationName.isEmpty()) ? "zzzzz" : p.applicationName.toLowerCase();
+                    return n;
+                }));
+                productAdapter.notifyDataSetChanged();
                 break;
             case "CATEGORY_DESC":
-                new Thread(() -> {
-                    ApplicationCategoryDao dao = AppDatabase.getInstance(requireContext()).applicationCategoryDao();
-
-                    for (Product p : currentList) {
-                        if (p.applicationCategoryId != 0) {
-                            ApplicationCategory cat = dao.getById(p.applicationCategoryId);
-                            p.applicationName = cat != null ? cat.name.toLowerCase() : "zzzzz";
-                        } else {
-                            p.applicationName = "zzzzz";
-                        }
-                    }
-
-                    currentList.sort((p1, p2) -> p2.applicationName.compareTo(p1.applicationName));
-                    requireActivity().runOnUiThread(() -> productAdapter.notifyDataSetChanged());
-                }).start();
+                applyCategoryNames(currentList);
+                currentList.sort((p1, p2) -> {
+                    String n1 = (p1.applicationName == null || p1.applicationName.isEmpty()) ? "zzzzz" : p1.applicationName.toLowerCase();
+                    String n2 = (p2.applicationName == null || p2.applicationName.isEmpty()) ? "zzzzz" : p2.applicationName.toLowerCase();
+                    return n2.compareTo(n1);
+                });
+                productAdapter.notifyDataSetChanged();
                 break;
         }
         productAdapter.notifyDataSetChanged();

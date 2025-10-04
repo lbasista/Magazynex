@@ -123,7 +123,7 @@ public class RemoteOrderRepository implements OrderRepository{
                     JSONObject obj = response.getJSONObject(i);
                     int id = obj.optInt("id", 0);
                     String name = obj.optString("name", "");
-                    String producer = obj.optString("manufacturer", "");
+                    String producer = obj.optString("producer", "");
                     String barcode = obj.optString("barcode", "");
                     int quantity = obj.optInt("quantity", 0);
                     String description = obj.optString("description", "");

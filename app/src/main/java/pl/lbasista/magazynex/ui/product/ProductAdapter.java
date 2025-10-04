@@ -1,8 +1,11 @@
 package pl.lbasista.magazynex.ui.product;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,13 +19,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.ApplicationCategory;
 import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Product;
+import pl.lbasista.magazynex.data.repo.CategoryRepository;
+import pl.lbasista.magazynex.data.repo.RemoteCategoryRepository;
+import pl.lbasista.magazynex.data.repo.RoomCategoryRepository;
 import pl.lbasista.magazynex.ui.user.RoleChecker;
 import pl.lbasista.magazynex.ui.user.SessionManager;
 
@@ -30,6 +38,9 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     private final OnFavouriteClickListener favouriteClickListener;
     private final List<Product> productList;
     private final ProductViewModel viewModel;
+    private CategoryRepository categoryRepository;
+    private final Map<Integer, String> catNameById = new HashMap<>();
+    private volatile boolean categoriesLoaded = false;
 
     public List<Product> getProductList() {
         return productList;
@@ -43,6 +54,38 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         this.productList = productList;
         this.viewModel = viewModel;
         this.favouriteClickListener = listener;
+        loadCategoriesAsync();
+    }
+
+    private void ensureCategoriesLoaded(Context context) {
+        if (categoriesLoaded) return;
+        synchronized (this) {
+            if (categoriesLoaded) return;
+            if (categoryRepository == null) {
+                SessionManager session = new SessionManager(context);
+                categoryRepository = session.isRemoteMode() ? new RemoteCategoryRepository(context, session.getApiUrl()) : new RoomCategoryRepository(context);
+            }
+            loadCategoriesAsync();
+        }
+    }
+
+    private void loadCategoriesAsync() {
+        new Thread(() -> {
+            try {
+                List<ApplicationCategory> categories = categoryRepository.getAllCategories();
+                Map<Integer, String> map = new HashMap<>();
+                for (ApplicationCategory c : categories) map.put(c.id, c.name);
+
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    catNameById.clear();
+                    catNameById.putAll(map);
+                    categoriesLoaded = true;
+                    notifyDataSetChanged();
+                });
+            } catch (Exception e) {
+                Log.e("ProductAdapter", "Błąd pobierania kategorii", e);
+            }
+        }).start();
     }
 
     @NonNull
@@ -58,6 +101,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
         //Pobieramy produkt z listy
         Product product = productList.get(position);
+        ensureCategoriesLoaded(holder.itemView.getContext());
 
         //Ustawiamy nazwę i ilość
         holder.textViewProductName.setText(product.name);
@@ -90,31 +134,31 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
         //Kategoria
         if (product.applicationCategoryId != 0) {
-            //Jeśli ma
-            new Thread(() -> {
-                ApplicationCategoryDao dao = AppDatabase.getInstance(holder.itemView.getContext()).applicationCategoryDao();
-
-                ApplicationCategory category = dao.getById(product.applicationCategoryId);
-                if (category != null) {
-                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                        holder.textViewProductApplication.setText(category.name);
-                    });
-                }
-            }).start();
+            String catName = catNameById.get(product.applicationCategoryId);
+            if (catName != null && !catName.isEmpty()) {
+                holder.textViewProductApplication.setText(catName);
+                holder.textViewProductApplication.setVisibility(View.VISIBLE);
+            } else {
+                holder.textViewProductApplication.setText(categoriesLoaded ? "Brak kategorii" : "Ładowanie...");
+                holder.textViewProductApplication.setVisibility(View.VISIBLE);
+            }
         } else {
             holder.textViewProductApplication.setVisibility(View.GONE);
         }
 
         //Wyświetlanie zdjęcia
-        if (product.imageUri != null && !product.imageUri.trim().isEmpty()) {
-            Glide.with(holder.itemView.getContext())
-                            .load(Uri.parse(product.imageUri))
-                                    .placeholder(R.drawable.ic_no_image)
-                                            .error(R.drawable.ic_no_image)
-                                                    .into(holder.imageViewProduct);
-            holder.imageViewProduct.setVisibility(View.VISIBLE);
-        } else {
+        String img = product.imageUri == null ? "" : product.imageUri.trim();
+        if (img.isEmpty() || "null".equalsIgnoreCase(img) || "0".equals(img)) {
+            Glide.with(holder.itemView.getContext()).clear(holder.imageViewProduct);
+            holder.imageViewProduct.setImageDrawable(null);
             holder.imageViewProduct.setVisibility(View.GONE);
+        } else {
+            holder.imageViewProduct.setVisibility(View.VISIBLE);
+            Glide.with(holder.itemView.getContext())
+                    .load(Uri.parse(img))
+                    .placeholder(R.drawable.ic_no_image)
+                    .error(R.drawable.ic_no_image)
+                    .into(holder.imageViewProduct);
         }
 
         if (RoleChecker.isViewer(new SessionManager(holder.itemView.getContext()))) holder.textFavourite.setVisibility(View.GONE);

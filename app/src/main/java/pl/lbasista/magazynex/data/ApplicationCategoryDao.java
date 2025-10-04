@@ -13,7 +13,7 @@ import java.util.List;
 public interface ApplicationCategoryDao {
     //Nowe zastosowanie (ignore - brak duplikatów)
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    void insert(ApplicationCategory category);
+    long insert(ApplicationCategory category);
 
     //Aktualizacja
     @Update

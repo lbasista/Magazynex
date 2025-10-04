@@ -61,13 +61,16 @@ public class RemoteProductRepository implements ProductRepository {
                 JSONObject obj = response.getJSONObject(i);
                 int id = obj.optInt("id", 0);
                 String name = obj.optString("name", "");
-                String producer = obj.optString("manufacturer", "");
+                String producer = obj.optString("producer", "");
                 String barcode = obj.optString("barcode", "");
                 int quantity = obj.optInt("quantity", 0);
                 String description = obj.optString("description", "");
                 boolean favourite = obj.optBoolean("favourite", false);
+                int applicationCategoryId = obj.optInt("applicationCategoryId", 0);
+                String imageUri = obj.isNull("imageUri") ? "" : obj.optString("imageUri", "");
+                if ("null".equalsIgnoreCase(imageUri)) imageUri = "";
 
-                Product p = new Product(barcode, name, quantity, producer, favourite, 0, description, "");
+                Product p = new Product(barcode, name, quantity, producer, favourite, applicationCategoryId, description, imageUri);
                 p.id = id;
                 list.add(p);
             } catch (JSONException e) {
@@ -98,6 +101,118 @@ public class RemoteProductRepository implements ProductRepository {
             result.setValue(filtered);
         }
         return result;
+    }
+
+    @Override
+    public boolean updateProduct(Product product) {
+        if (apiUrl == null || apiUrl.isEmpty()) return false;
+        String url = apiUrl + "?action=updateProduct";
+
+        JSONObject body = new JSONObject();
+        try {
+            if (product.id > 0) body.put("id", product.id);
+            body.put("barcode", product.barcode);
+            body.put("name", product.name);
+            body.put("producer", product.producer);
+            body.put("quantity", product.quantity);
+            body.put("description", product.description);
+            body.put("applicationCategoryId", product.applicationCategoryId);
+            body.put("favourite", product.favourite);
+            body.put("imageUri", product.imageUri);
+        } catch (JSONException ignored) {}
+
+        RequestFuture<String> future = RequestFuture.newFuture();
+        StringRequest req = new StringRequest(Request.Method.POST, url, future, future) {
+            @Override public byte[] getBody() {return body.toString().getBytes();}
+            @Override public String getBodyContentType() {return "application/json; charset=utf-8";}
+        };
+        Volley.newRequestQueue(context).add(req);
+
+        try {
+            String resp = future.get(10, TimeUnit.SECONDS);
+            fetchAllProductsFromApi();
+            return resp != null && !resp.trim().isEmpty();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public long insertProduct(Product product) {
+        if (apiUrl == null || apiUrl.isEmpty()) return 0L;
+
+        String url = apiUrl + "?action=insertProduct";
+
+        JSONObject body = new JSONObject();
+        try {
+            body.put("barcode", product.barcode);
+            body.put("name", product.name);
+            body.put("producer", product.producer);
+            body.put("quantity", product.quantity);
+            body.put("description", product.description);
+            body.put("applicationCategoryId", product.applicationCategoryId);
+            body.put("favourite", product.favourite);
+            body.put("imageUri", product.imageUri);
+        } catch (JSONException ignored) {}
+
+        RequestFuture<String> future = RequestFuture.newFuture();
+        StringRequest req = new StringRequest(Request.Method.POST, url, future, future) {
+            @Override public byte[] getBody() {return body.toString().getBytes();}
+            @Override public String getBodyContentType() {return "application/json; charset=utf-8";}
+        };
+        Volley.newRequestQueue(context).add(req);
+
+        try {
+            String resp = future.get(10, TimeUnit.SECONDS);
+            long id;
+            try {
+                JSONObject obj = new JSONObject(resp);
+                id = obj.optLong("id", 0L);
+            } catch (JSONException notJson) {
+                id = Long.parseLong(resp.trim());
+            }
+
+            fetchAllProductsFromApi();
+            return id;
+        } catch (Exception e) {
+            Log.e("RemoteProductRepo", "insertProduct error: " + e.getMessage());
+            return 0L;
+        }
+    }
+
+    @Override
+    public boolean deleteProduct(int id) {
+        if (apiUrl == null || apiUrl.isEmpty()) return false;
+        String url = apiUrl + "?action=deleteProduct";
+        try {
+            JSONObject body = new JSONObject();
+            body.put("id", id);
+
+            RequestFuture<String> future = RequestFuture.newFuture();
+            StringRequest req = new StringRequest(Request.Method.POST, url, future, future) {
+                @Override public byte[] getBody() {return body.toString().getBytes();}
+                @Override public String getBodyContentType() {return "application/json; charset=utf-8";}
+            };
+
+            RequestQueue q = Volley.newRequestQueue(context);
+            q.add(req);
+            String resp = future.get(10, TimeUnit.SECONDS);
+            boolean ok = false;
+            if (resp != null) {
+                try {
+                    JSONObject json = new JSONObject(resp);
+                    ok = json.optBoolean("success", false);
+                    if (!ok) ok = json.optInt("affected", 0) > 0;
+                } catch (JSONException notJson) {
+                    ok = "ok".equalsIgnoreCase(resp.trim());
+                }
+            }
+            if (ok) fetchAllProductsFromApi();
+            return ok;
+        } catch (Exception e) {
+            Log.e("RemoteProductRepo", "deleteProduct error: " + e.getMessage());
+            return false;
+        }
     }
 
     @Override
@@ -182,7 +297,7 @@ public class RemoteProductRepository implements ProductRepository {
         if (apiUrl == null || apiUrl.isEmpty()) return new ArrayList<>();
         RequestQueue queue = Volley.newRequestQueue(context);
         RequestFuture<JSONArray> future = RequestFuture.newFuture();
-        JsonArrayRequest request = new JsonArrayRequest(Request.Method.POST, apiUrl, null, future, future);
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, apiUrl, null, future, future);
         queue.add(request);
 
         try{
