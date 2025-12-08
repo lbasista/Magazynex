@@ -13,21 +13,27 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import pl.lbasista.magazynex.R;
-import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.User;
-import pl.lbasista.magazynex.data.UserDao;
+import pl.lbasista.magazynex.data.repo.RemoteUserRepository;
+import pl.lbasista.magazynex.data.repo.RoomUserRepository;
+import pl.lbasista.magazynex.data.repo.UserRepository;
 
 public class ProfileFragment extends Fragment {
-    TextView userName, userLogin, userRole;
+    TextView userName, userLogin, userRole, accountType;
     Button buttonChangeLogin, buttonChangePassword, buttonUserOptions, buttonLogout;
     SessionManager session;
+    UserRepository userRepository;
     User user;
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_profile, container, false);
 
+        session = new SessionManager(requireContext());
+        userRepository = session.isRemoteMode() ? new RemoteUserRepository(requireContext(), session.getApiUrl()) : new RoomUserRepository(requireContext());
+
         userName = view.findViewById(R.id.textviewUserName);
         userLogin = view.findViewById(R.id.textviewUserLogin);
         userRole = view.findViewById(R.id.textviewUserRole);
+        accountType = view.findViewById(R.id.textviewAccountType);
         buttonChangeLogin = view.findViewById(R.id.buttonChangeLogin);
         buttonChangePassword = view.findViewById(R.id.buttonChangePassword);
         buttonUserOptions = view.findViewById(R.id.buttonUsers);
@@ -76,13 +82,13 @@ public class ProfileFragment extends Fragment {
 
     private  void loadUserData(int userId) {
         new Thread(() -> {
-            UserDao userDao = AppDatabase.getInstance(requireContext()).userDao();
-            User user = userDao.getById(userId);
+            User user = userRepository.getById(userId);
             requireActivity().runOnUiThread(() -> {
                 if (user != null) {
                     userName.setText(user.getFullName());
                     userLogin.setText("@" + user.login);
                     userRole.setText(user.role);
+                    accountType.setText(session.isRemoteMode() ? "Konto zdalne" : "Konto lokalne");
                 }
             });
         }).start();

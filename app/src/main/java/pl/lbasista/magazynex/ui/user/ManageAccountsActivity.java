@@ -12,13 +12,15 @@ import com.google.android.material.appbar.MaterialToolbar;
 import java.util.List;
 
 import pl.lbasista.magazynex.R;
-import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.User;
-import pl.lbasista.magazynex.data.UserDao;
+import pl.lbasista.magazynex.data.repo.RemoteUserRepository;
+import pl.lbasista.magazynex.data.repo.RoomUserRepository;
+import pl.lbasista.magazynex.data.repo.UserRepository;
 
 public class ManageAccountsActivity extends AppCompatActivity {
     private RecyclerView recyclerViewAccount;
     private MaterialToolbar toolbar;
+    private UserRepository userRepository;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -26,6 +28,8 @@ public class ManageAccountsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_manage_accounts);
         SessionManager session = new SessionManager(this);
         int loggedUserId = session.getUserId();
+
+        userRepository = session.isRemoteMode() ? new RemoteUserRepository(this, session.getApiUrl()) : new RoomUserRepository(this);
 
         recyclerViewAccount = findViewById(R.id.recyclerViewAccounts);
         recyclerViewAccount.setLayoutManager(new LinearLayoutManager(this));
@@ -50,9 +54,7 @@ public class ManageAccountsActivity extends AppCompatActivity {
         });
 
         new Thread(() -> {
-            UserDao userDao = AppDatabase.getInstance(this).userDao();
-            List<User> users = userDao.getAllUsers();
-
+            List<User> users = userRepository.getAllUsers();
             runOnUiThread(() -> {
                 AccountsAdapter accountsAdapter = new AccountsAdapter(users, loggedUserId);
                 recyclerViewAccount.setAdapter(accountsAdapter);
@@ -62,10 +64,10 @@ public class ManageAccountsActivity extends AppCompatActivity {
 
     private void reloadAccounts() {
         SessionManager session = new SessionManager(this);
+        UserRepository userRepository = session.isRemoteMode() ? new RemoteUserRepository(this, session.getApiUrl()) : new RoomUserRepository(this);
         int loggedUserId = session.getUserId();
         new Thread(() -> {
-            UserDao userDao = AppDatabase.getInstance(this).userDao();
-            List<User> users = userDao.getAllUsers();
+            List<User> users = userRepository.getAllUsers();
             runOnUiThread(() -> recyclerViewAccount.setAdapter(new AccountsAdapter(users, loggedUserId)));
         }).start();
     }

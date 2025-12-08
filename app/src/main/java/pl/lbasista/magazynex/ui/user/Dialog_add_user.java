@@ -23,14 +23,19 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import pl.lbasista.magazynex.R;
-import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.User;
+import pl.lbasista.magazynex.data.repo.RemoteUserRepository;
+import pl.lbasista.magazynex.data.repo.RoomUserRepository;
+import pl.lbasista.magazynex.data.repo.UserRepository;
 
 public class Dialog_add_user extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_user, null);
+
+        SessionManager session = new SessionManager(requireContext());
+        UserRepository userRepository = session.isRemoteMode() ? new RemoteUserRepository(requireContext(), session.getApiUrl()) : new RoomUserRepository(requireContext());
 
         TextInputEditText inputLogin = view.findViewById(R.id.inputNewLogin);
         TextInputLayout inputLoginLayout = view.findViewById(R.id.inputNewLoginLayout);
@@ -94,7 +99,7 @@ public class Dialog_add_user extends DialogFragment {
                 newUser.surname = surname;
                 newUser.role = role;
 
-                AppDatabase.getInstance(requireContext()).userDao().insert(newUser);
+                userRepository.insertUser(newUser);
 
                 requireActivity().runOnUiThread(() -> {
                     Toast.makeText(getContext(), "Użytkownik dodany", Toast.LENGTH_SHORT).show();

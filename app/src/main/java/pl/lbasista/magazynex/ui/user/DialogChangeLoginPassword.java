@@ -15,9 +15,10 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import pl.lbasista.magazynex.R;
-import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.User;
-import pl.lbasista.magazynex.data.UserDao;
+import pl.lbasista.magazynex.data.repo.RemoteUserRepository;
+import pl.lbasista.magazynex.data.repo.RoomUserRepository;
+import pl.lbasista.magazynex.data.repo.UserRepository;
 
 public class DialogChangeLoginPassword extends DialogFragment {
     private final int userId;
@@ -34,6 +35,9 @@ public class DialogChangeLoginPassword extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         View view = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_change_login_password, null);
+
+        SessionManager session = new SessionManager(requireContext());
+        UserRepository userRepository = session.isRemoteMode() ? new RemoteUserRepository(requireContext(), session.getApiUrl()) : new RoomUserRepository(requireContext());
 
         TextInputEditText editLogin = view.findViewById(R.id.inputEditLogin);
         TextInputEditText editPassword = view.findViewById(R.id.inputEditPassword);
@@ -57,17 +61,16 @@ public class DialogChangeLoginPassword extends DialogFragment {
             String confirmPassword = editconfirmPassword.getText().toString().trim();
 
             if (showPassword && !newPassword.equals(confirmPassword)) {
-                Toast.makeText(getContext(), "Hasła muszą być identyczne", Toast.LENGTH_SHORT);
+                Toast.makeText(getContext(), "Hasła muszą być identyczne", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             new Thread(() -> {
-                UserDao userDao = AppDatabase.getInstance(requireContext()).userDao();
-                User user = userDao.getById(userId);
+                User user = userRepository.getById(userId);
                 if (user != null) {
                     if (showLogin) user.login = newLogin;
                     if (showPassword) user.password = BCrypt.withDefaults().hashToString(12, newPassword.toCharArray());
-                    userDao.updateUser(user);
+                    boolean ok = userRepository.updateUser(user);
                     requireActivity().runOnUiThread(() -> {
                         Toast.makeText(getContext(), "Zaktualizowano dane", Toast.LENGTH_SHORT);
                         getParentFragmentManager().setFragmentResult("update_profile", new Bundle());

@@ -98,7 +98,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginBottom="48dp"
-        android:text="0.33 Pre-alfa\nlbasista 08.2025"
+        android:text="0.35 Pre-alfa\nlbasista 12.2025"
         android:textColor="@color/light_blue"
         android:textAlignment="center"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

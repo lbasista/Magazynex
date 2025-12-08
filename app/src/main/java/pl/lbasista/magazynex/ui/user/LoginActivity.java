@@ -9,10 +9,6 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -23,6 +19,7 @@ import pl.lbasista.magazynex.R;
 import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.User;
 import pl.lbasista.magazynex.data.UserDao;
+import pl.lbasista.magazynex.data.repo.RemoteUserRepository;
 import pl.lbasista.magazynex.ui.main.MainMenuActivity;
 
 public class LoginActivity extends AppCompatActivity {
@@ -64,7 +61,7 @@ public class LoginActivity extends AppCompatActivity {
 
             boolean isError = false;
             if (userLogin.isEmpty()) {
-                inputLoginLayout.setError("Wprawadź login");
+                inputLoginLayout.setError("Wprowadź login");
                 isError = true;
             } else inputLoginLayout.setError(null);
             if (userPassword.isEmpty()) {
@@ -101,23 +98,26 @@ public class LoginActivity extends AppCompatActivity {
                 Log.d("API", "Adres API: " + apiUrl);
                 SessionManager session = new SessionManager(this);
                 session.setApiUrl(apiUrl);
-                RequestQueue queue = Volley.newRequestQueue(this);
-                JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, apiUrl, null, response -> {
-                    Log.d("API", "Pobrano dane z API. Liczba rekordów: " + response.length());
+                RemoteUserRepository repo = new RemoteUserRepository(this, apiUrl);
+                new Thread(() -> {
+                    User user = repo.getByLogin(userLogin);
+                    boolean ok = (user != null) && BCrypt.verifyer().verify(userPassword.toCharArray(), user.password).verified;
+
                     runOnUiThread(() -> {
+                        if (!ok) {
+                            Toast.makeText(this, "Błędne dane logowania", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
                         Intent intent = new Intent(this, MainMenuActivity.class);
-                        intent.putExtra("api_url", apiUrl);
-                        session.saveUserSession(0);
-                        session.saveUserRole("Zdalny");
-                        session.setRemoteMode(true);
+                        SessionManager s = new SessionManager(this);
+                        s.saveUserSession(user.id);
+                        s.saveUserRole(user.role);
+                        s.setRemoteMode(true);
                         startActivity(intent);
                         finish();
                     });
-                }, error -> {
-                    Log.e("API", "Błąd zapytania: " + error.toString());
-                    runOnUiThread(() -> Toast.makeText(this, "Błąd połączenia z bazą zewnętrzną", Toast.LENGTH_SHORT).show());
-                });
-                queue.add(request);
+                }).start();
             }
         });
     }

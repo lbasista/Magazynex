@@ -21,8 +21,10 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import pl.lbasista.magazynex.R;
-import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.User;
+import pl.lbasista.magazynex.data.repo.RemoteUserRepository;
+import pl.lbasista.magazynex.data.repo.RoomUserRepository;
+import pl.lbasista.magazynex.data.repo.UserRepository;
 
 public class Dialog_edit_user extends DialogFragment {
     private final User userToEdit;
@@ -37,6 +39,9 @@ public class Dialog_edit_user extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_user, null);
+
+        SessionManager session = new SessionManager(requireContext());
+        UserRepository userRepository = session.isRemoteMode() ? new RemoteUserRepository(requireContext(), session.getApiUrl()) : new RoomUserRepository(requireContext());
 
         TextView title = view.findViewById(R.id.dialogTitleAdd);
         title.setVisibility(View.GONE);
@@ -74,7 +79,7 @@ public class Dialog_edit_user extends DialogFragment {
                         .setMessage("Czy na pewno chcesz usunąć tego użytkownika?")
                         .setPositiveButton("Usuń", (dialogInterface, i) -> {
                             new Thread(() -> {
-                                AppDatabase.getInstance(requireContext()).userDao().deleteUser(userToEdit);
+                                userRepository.deleteUser(userToEdit.id);
                                 requireActivity().runOnUiThread(() -> {
                                     Toast.makeText(getContext(), "Użytkownik usunięty", Toast.LENGTH_SHORT).show();
                                     getParentFragmentManager().setFragmentResult("user_updated", new Bundle());
@@ -121,7 +126,7 @@ public class Dialog_edit_user extends DialogFragment {
                 userToEdit.surname = surname;
                 userToEdit.role = role;
 
-                AppDatabase.getInstance(requireContext()).userDao().updateUser(userToEdit);
+                userRepository.updateUser(userToEdit);
                 requireActivity().runOnUiThread(() -> {
                     Toast.makeText(getContext(), "Zaktualizowano użytkownika", Toast.LENGTH_SHORT).show();
                     getParentFragmentManager().setFragmentResult("user_updated", new Bundle());
