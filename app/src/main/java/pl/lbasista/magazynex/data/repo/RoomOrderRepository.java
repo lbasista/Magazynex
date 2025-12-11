@@ -50,4 +50,36 @@ public class RoomOrderRepository implements OrderRepository {
             return false;
         }
     }
+
+    @Override
+    public boolean updateOrderHeader(int orderId, String newName, int newTotalQuantity) {
+        try {
+            AppDatabase db = AppDatabase.getInstance(context);
+            Order order = db.orderDao().getById(orderId);
+            if (order == null) return false;
+
+            order.name = newName;
+            order.quantity = newTotalQuantity;
+            db.orderDao().update(order);
+            return true;
+        } catch (Throwable t) {
+            Log.e("RoomOrderRepo", "updateOrderHeader error", t);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean replaceOrderProduct(int orderId, List<OrderProduct> newProducts) {
+        try {
+            AppDatabase db = AppDatabase.getInstance(context);
+            OrderProductDao opDao = db.orderProductDao();
+            opDao.deleteAllByOrderId(orderId);
+
+            for (OrderProduct p : newProducts) opDao.insert(p);
+            return true;
+        } catch (Throwable t) {
+            Log.e("RoomOrderRepo", "replaceOrderHeader error", t);
+            return false;
+        }
+    }
 }

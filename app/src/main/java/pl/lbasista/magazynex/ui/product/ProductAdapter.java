@@ -30,6 +30,7 @@ import pl.lbasista.magazynex.data.ApplicationCategoryDao;
 import pl.lbasista.magazynex.data.Product;
 import pl.lbasista.magazynex.data.repo.CategoryRepository;
 import pl.lbasista.magazynex.data.repo.RemoteCategoryRepository;
+import pl.lbasista.magazynex.data.repo.RemoteOrderRepository;
 import pl.lbasista.magazynex.data.repo.RoomCategoryRepository;
 import pl.lbasista.magazynex.ui.user.RoleChecker;
 import pl.lbasista.magazynex.ui.user.SessionManager;
@@ -41,6 +42,8 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     private CategoryRepository categoryRepository;
     private final Map<Integer, String> catNameById = new HashMap<>();
     private volatile boolean categoriesLoaded = false;
+    private Map<Integer, Integer> remoteUsageMap = new HashMap<>();
+    private boolean usageLoaded = false;
 
     public List<Product> getProductList() {
         return productList;
@@ -54,7 +57,6 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         this.productList = productList;
         this.viewModel = viewModel;
         this.favouriteClickListener = listener;
-        loadCategoriesAsync();
     }
 
     private void ensureCategoriesLoaded(Context context) {
@@ -88,6 +90,23 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         }).start();
     }
 
+    private void loadUsageAsync(Context context) {
+        new Thread(() -> {
+            SessionManager session = new SessionManager(context);
+            if (!session.isRemoteMode()) return;
+
+            RemoteOrderRepository repo = new RemoteOrderRepository(context, session.getApiUrl());
+            Map<Integer, Integer> usage = repo.getProductUsageMap();
+
+            new Handler(Looper.getMainLooper()).post(() -> {
+                remoteUsageMap.clear();
+                remoteUsageMap.putAll(usage);
+                usageLoaded =true;
+                notifyDataSetChanged();
+            });
+        }).start();
+    }
+
     @NonNull
     @Override
     public ProductViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -109,11 +128,20 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         holder.textViewProductQuantity.setText("Na stanie: " + String.valueOf(product.quantity));
 
         new Thread(() -> {
-            AppDatabase db = AppDatabase.getInstance(holder.itemView.getContext());
-            int onList = db.orderProductDao().getTotalCountForProduct(product.id);
+            SessionManager session = new SessionManager(holder.itemView.getContext());
+            int onList;
+
+            if (session.isRemoteMode()) {
+                if (!usageLoaded) loadUsageAsync(holder.itemView.getContext());
+                onList = remoteUsageMap.getOrDefault(product.id, 0);
+            } else {
+                AppDatabase db = AppDatabase.getInstance(holder.itemView.getContext());
+                onList = db.orderProductDao().getTotalCountForProduct(product.id);
+            }
+
             int quantityLeft = product.quantity - onList;
 
-            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+            new Handler(Looper.getMainLooper()).post(() -> {
                 holder.textViewProductQuantityOnList.setText("Na liście: " + onList);
                 holder.textViewProductQuantityLeft.setText("Wolnych: " + quantityLeft);
                 int colorId = R.color.gray;

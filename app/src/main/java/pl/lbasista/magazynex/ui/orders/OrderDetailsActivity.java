@@ -151,11 +151,9 @@ public class OrderDetailsActivity extends AppCompatActivity {
 
                     LinearLayout layoutProducts = dialogEdit.findViewById(R.id.layoutProductsEdit);
                     boolean hasError = false;
-                    final int[] sumQuantity = {0};
 
                     for (int i = 0; i < layoutProducts.getChildCount(); i++) {
                         View row = layoutProducts.getChildAt(i);
-                        int productId = (int) row.getTag();
                         TextInputEditText inputCount = row.findViewById(R.id.inputEditCount);
                         TextInputLayout inputCountLayout = row.findViewById(R.id.inputEditCountLayout);
                         String val = inputCount.getText().toString().trim();
@@ -173,8 +171,6 @@ public class OrderDetailsActivity extends AppCompatActivity {
                             if (qty < 0) {
                                 inputCountLayout.setError("Musi być większe od 0");
                                 hasError = true;
-                            } else if (qty > 0) {
-                                //
                             }
                         } catch (NumberFormatException e) {
                             inputCountLayout.setError("Nieprawidłowa wartość");
@@ -184,30 +180,32 @@ public class OrderDetailsActivity extends AppCompatActivity {
                     if (hasError) return;
 
                     new Thread(() -> {
-                        Order order = db.orderDao().getById(currentOrderId);
-                        order.name = newName;
+                        List<OrderProduct> newProducts = new ArrayList<>();
+                        int sumQuantity = 0;
 
-                        db.orderProductDao().deleteAllByOrderId(currentOrderId);
                         for (int i = 0; i < layoutProducts.getChildCount(); i++) {
                             View row = layoutProducts.getChildAt(i);
                             int productId = (int) row.getTag();
                             TextInputEditText inputCount = row.findViewById(R.id.inputEditCount);
                             String val = inputCount.getText().toString().trim();
-                            int qty = Integer.parseInt(val);
+                            int qty = Integer.parseInt(inputCount.getText().toString().trim());
 
                             if (qty > 0) {
-                                OrderProduct rel = new OrderProduct(currentOrderId, productId, qty);
-                                db.orderProductDao().insert(rel);
-                                sumQuantity[0] += qty;
+                                newProducts.add(new OrderProduct(currentOrderId, productId, qty));
+                                sumQuantity += qty;
                             }
-                            order.quantity = sumQuantity[0];
-                            db.orderDao().update(order);
                         }
+                        boolean okHeader = repository.updateOrderHeader(currentOrderId, newName, sumQuantity);
+                        boolean okProducts = repository.replaceOrderProduct(currentOrderId, newProducts);
+                        boolean finalOk = okHeader && okProducts;
+
                         runOnUiThread(() -> {
-                            Toast.makeText(this, "Zapisano zmiany", Toast.LENGTH_SHORT).show();
-                            ((TextView) findViewById(R.id.tvOrderName)).setText(newName);
-                            loadProducts();
-                            dialog.dismiss();
+                            if (finalOk) {
+                                Toast.makeText(this, "Zapisano zmiany", Toast.LENGTH_SHORT).show();
+                                ((TextView) findViewById(R.id.tvOrderName)).setText(newName);
+                                loadProducts();
+                                dialog.dismiss();
+                            } else Toast.makeText(this, "Błąd zapisu", Toast.LENGTH_SHORT).show();
                         });
                     }).start();
                 });
@@ -313,22 +311,27 @@ public class OrderDetailsActivity extends AppCompatActivity {
                 }).start();
                 return true;
             } else if (id == R.id.orderRemove) {
-                orderDao = AppDatabase.getInstance(this).orderDao();
                 new AlertDialog.Builder(this)
                         .setTitle("Usuwanie listy")
                         .setMessage("Czy chcesz usunąć listę z bazy?")
                         .setPositiveButton("Tak", (dialog, which) -> {
-
                             new Thread(() -> {
-                                Order toDelete = orderDao.getById(currentOrderId);
-                                if (toDelete != null) {
-                                    orderDao.delete(toDelete);
-
-                                    runOnUiThread(() -> {
-                                        Toast.makeText(this, "Lista usunięta", Toast.LENGTH_SHORT).show();
-                                        finish();
-                                    });
+                                boolean ok;
+                                if (isRemote) {
+                                    ok = remoteRepo.deleteOrder(currentOrderId);
+                                } else {
+                                    Order local = db.orderDao().getById(currentOrderId);
+                                    ok = (local != null);
+                                    if (ok) db.orderDao().delete(local);
                                 }
+                                boolean finalOk = ok;
+
+                                runOnUiThread(() -> {
+                                    if (finalOk) {
+                                        Toast.makeText(this, "Usunięto listę", Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    } else Toast.makeText(this, "Błąd usuwania", Toast.LENGTH_SHORT).show();
+                                });
                             }).start();
                         })
                         .setNegativeButton("Anuluj", null)

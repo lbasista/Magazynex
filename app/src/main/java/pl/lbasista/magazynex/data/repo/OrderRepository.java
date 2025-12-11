@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData;
 import java.util.List;
 
 import pl.lbasista.magazynex.data.Order;
+import pl.lbasista.magazynex.data.OrderProduct;
 import pl.lbasista.magazynex.data.Product;
 
 public interface OrderRepository {
@@ -13,4 +14,6 @@ public interface OrderRepository {
     LiveData<List<Product>> getProductsForOrder(int orderId);
     LiveData<List<Order>> getOrdersForProduct(int productId);
     boolean addProductToOrder(int orderId, int productId, int count);
+    boolean updateOrderHeader(int orderId, String newName, int newTotalQuantity);
+    boolean replaceOrderProduct(int orderId, List<OrderProduct> newProducts);
 }

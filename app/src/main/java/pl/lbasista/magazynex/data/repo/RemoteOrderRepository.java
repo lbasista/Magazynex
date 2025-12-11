@@ -18,11 +18,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import pl.lbasista.magazynex.data.AppDatabase;
 import pl.lbasista.magazynex.data.Order;
+import pl.lbasista.magazynex.data.OrderProduct;
 import pl.lbasista.magazynex.data.Product;
 
 public class RemoteOrderRepository implements OrderRepository{
@@ -110,6 +112,45 @@ public class RemoteOrderRepository implements OrderRepository{
         }
     }
 
+    public boolean deleteOrder(int orderId) {
+        String url = apiUrl + "?action=deleteOrder";
+        JSONObject body = new JSONObject();
+        try {
+            body.put("id", orderId);
+        } catch (JSONException e) {
+            Log.e("RemoteOrderRepo", "Błąd JSON: " + e.getMessage());
+            return false;
+        }
+
+        RequestFuture<String> future = RequestFuture.newFuture();
+        StringRequest req = new StringRequest(Request.Method.POST, url, future, future) {
+            @Override
+            public byte[] getBody() {return body.toString().getBytes();}
+
+            @Override
+            public String getBodyContentType() {return "application/json; charset=utf-8";}
+        };
+
+        Volley.newRequestQueue(context).add(req);
+        try {
+            String resp = future.get(10, TimeUnit.SECONDS);
+            if (resp == null) return false;
+
+            resp = resp.trim().toLowerCase();
+            if ("ok".equals(resp) || "true".equals(resp) || "1".equals(resp)) return true;
+
+            try {
+                JSONObject obj = new JSONObject(resp);
+                return obj.optBoolean("success", obj.optInt("deleted", 0) > 0);
+            } catch (JSONException e) {
+                return !resp.isEmpty();
+            }
+        } catch (Exception e) {
+            Log.e("RemoteOrderRepo", "Błąd usuwania zamówienia: " + e.getMessage());
+            return false;
+        }
+    }
+
     @Override
     public LiveData<List<Product>> getProductsForOrder(int orderId) {
         MutableLiveData<List<Product>> data = new MutableLiveData<>();
@@ -141,6 +182,27 @@ public class RemoteOrderRepository implements OrderRepository{
         });
         queue.add(request);
         return data;
+    }
+
+    public Map<Integer, Integer> getProductUsageMap() {
+        Map<Integer, Integer> result = new HashMap<>();
+        String url = apiUrl + "?action=productUsage";
+        RequestFuture<JSONArray> future = RequestFuture.newFuture();
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null, future, future);
+        Volley.newRequestQueue(context).add(request);
+
+        try {
+            JSONArray arr = future.get(10, TimeUnit.SECONDS);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject obj = arr.getJSONObject(i);
+                int productId = obj.optInt("productId", 0);
+                int used = obj.optInt("used", 0);
+                result.put(productId, used);
+            }
+        } catch (Exception e) {
+            Log.e("RemoteOrderRepo", "Błąd pobierania map: " + e.getMessage());
+        }
+        return result;
     }
 
     @Override
@@ -218,5 +280,41 @@ public class RemoteOrderRepository implements OrderRepository{
             Log.e("RemoteOrderRepo", "API addProductToOrder error: " + e.getMessage());
             return false;
         }
+    }
+
+    @Override
+    public boolean updateOrderHeader(int orderId, String newName, int newTotalQuantity) {
+        String url = apiUrl + "?action=updateOrderHeader";
+        JSONObject body = new JSONObject();
+        try {
+            body.put("id", orderId);
+            body.put("name", newName);
+            body.put("quantity", newTotalQuantity);
+        } catch (JSONException e) {
+            Log.e("RemoteOrderRepo", "Błąd JSON: " + e.getMessage());
+            return false;
+        }
+
+        RequestFuture<String> future = RequestFuture.newFuture();
+        StringRequest req = new StringRequest(Request.Method.POST, url, future, future) {
+            @Override
+            public byte[] getBody() {return body.toString().getBytes();}
+            @Override
+            public String getBodyContentType() {return "application/json; charset=utf-8";}
+        };
+
+        Volley.newRequestQueue(context).add(req);
+        try {
+            String resp = future.get(10, TimeUnit.SECONDS);
+            return resp != null && resp.trim().equalsIgnoreCase("ok");
+        } catch (Exception e) {
+            Log.e("RemoteOrderRepo", "Błąd aktualizacji zamówienia: " + e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean replaceOrderProduct(int orderId, List<OrderProduct> newProducts) {
+        return false;
     }
 }
